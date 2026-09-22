@@ -97,11 +97,11 @@
       </div>
 
       <!-- User Stats HUD -->
-      <div class="flex items-center space-x-3 sm:space-x-4 font-black text-sm">
+      <div class="flex items-center space-x-3 sm:space-x-5 font-black text-sm">
         <!-- Streak -->
         <div class="flex items-center text-amber-500 space-x-1" title="Daily Streak">
           <i class="fa-solid fa-fire text-lg sm:text-xl animate-bounce"></i>
-          <span id="hud-streak">1</span>
+          <span id="hud-streak">0</span>
         </div>
 
         <!-- Gems -->
@@ -110,12 +110,10 @@
           <span id="hud-gems">50</span>
         </div>
 
-        <!-- Hearts Health / Unlimited Toggle -->
-        <div class="flex items-center space-x-1 cursor-pointer group" onclick="app.toggleUnlimitedHearts()" title="Click to toggle Unlimited Hearts!">
-          <div class="flex items-center text-duoRed space-x-1 bg-red-50 px-2 py-1 rounded-xl border border-red-200 group-hover:bg-red-100 transition">
-            <i id="hud-heart-icon" class="fa-solid fa-heart text-base sm:text-lg"></i>
-            <span id="hud-hearts">5</span>
-          </div>
+        <!-- Hearts Health -->
+        <div class="flex items-center text-duoRed space-x-1" title="Hearts Health">
+          <i class="fa-solid fa-heart text-base sm:text-lg"></i>
+          <span id="hud-hearts">5</span>
         </div>
 
         <!-- Total XP -->
@@ -173,7 +171,7 @@
       <div id="path-section" class="hidden space-y-6 pt-6 border-t-2 border-slate-200">
         <div class="text-center space-y-1">
           <h2 id="path-title" class="text-2xl font-black text-slate-800">Subject Skill Path</h2>
-          <p class="text-slate-500 font-bold text-sm">Complete units to unlock higher mastery levels & earn rewards!</p>
+          <p class="text-slate-500 font-bold text-sm">Complete units to unlock higher mastery levels!</p>
         </div>
 
         <!-- Unit Node Skill Tree -->
@@ -196,7 +194,7 @@
           <div id="quiz-progress-bar" class="bg-duoGreen h-full w-0 transition-all duration-300 rounded-full shadow-inner"></div>
         </div>
         <div class="flex items-center space-x-1 text-duoRed font-black text-lg">
-          <i id="quiz-heart-badge-icon" class="fa-solid fa-heart"></i>
+          <i class="fa-solid fa-heart"></i>
           <span id="quiz-hearts-count">5</span>
         </div>
       </div>
@@ -262,7 +260,7 @@
         <div class="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-card-3d">
           <div class="text-xs font-black uppercase text-slate-400">Total XP Earned</div>
           <div id="complete-xp" class="text-2xl font-black text-duoYellow flex items-center justify-center space-x-1 mt-1">
-            <i class="fa-solid fa-bolt"></i> <span>+25 XP</span>
+            <i class="fa-solid fa-bolt"></i> <span>+20 XP</span>
           </div>
         </div>
         <div class="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-card-3d">
@@ -282,10 +280,10 @@
 
   <footer class="bg-white border-t-2 border-slate-200 py-4 text-center text-xs font-extrabold text-slate-400">
     <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
-      <div>LingoQuest &copy; 2026 • 45+ Subject Interactive Engine</div>
+      <div>LingoQuest &copy; 2026 • Interactive Learning Engine</div>
       <div class="flex space-x-4">
-        <button onclick="app.toggleUnlimitedHearts()" class="hover:text-duoRed flex items-center space-x-1">
-          <i class="fa-solid fa-infinity text-duoRed"></i> <span id="footer-unlimited-text">Toggle Infinite Hearts</span>
+        <button onclick="app.refillHearts()" class="hover:text-duoRed flex items-center space-x-1">
+          <i class="fa-solid fa-heart text-duoRed"></i> <span>Refill Hearts (50 Gems)</span>
         </button>
         <button onclick="app.resetUserData()" class="hover:text-slate-600">Reset Progress</button>
       </div>
@@ -296,7 +294,6 @@
   <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
 
   <script>
-    // --- AUDIO & SFX MANAGER ---
     class AudioSFXManager {
       constructor() {
         this.ctx = null;
@@ -404,7 +401,6 @@
   </script>
 
   <script>
-    // --- COMPLETE 45+ SUBJECT DATABASE ---
     const SUBJECTS_DATA = [
       { id: 'webdev', name: 'Web Development', flag: '💻', category: 'Tech', desc: 'HTML, CSS, JS & MERN Architecture' },
       { id: 'en', name: 'English', flag: '🇬🇧', category: 'Language', desc: 'Grammar, Idioms & Vocabulary' },
@@ -453,34 +449,119 @@
       { id: 'music', name: 'Music Theory', flag: '🎵', category: 'Arts', desc: 'Notes, Scales, Intervals & Chords' }
     ];
 
-    // Specific Question Banks for Key Subjects
+    /* Dynamic Question Bank per Subject */
     const QUESTION_BANK = {
       webdev: [
-        { type: 'MC', instruction: 'Which HTML element is used for the top-level heading?', prompt: 'Identify the largest text header tag', answer: '<h1>', options: ['<h6>', '<head>', '<h1>', '<header>'] },
-        { type: 'WORDBANK', instruction: 'Build the JavaScript variable declaration snippet', prompt: 'Declare variable "score" as 100', answerTokens: ['const', 'score', '=', '100', ';'], poolTokens: ['let', 'const', 'score', '=', '100', 'var', ';', '100;'] },
-        { type: 'TRUEFALSE', instruction: 'Assess the React framework concept', prompt: 'React uses a Virtual DOM to optimize view re-renders.', answer: 'True' },
-        { type: 'FLASHCARD', instruction: 'Flip card to learn CSS Flexbox alignment', prompt: 'justify-content: center;', answer: 'Aligns flex items along the main axis to the center.' }
+        {
+          type: 'MC',
+          instruction: 'Which HTML element is used for the top-level heading?',
+          prompt: 'Identify the largest text header tag',
+          answer: '<h1>',
+          options: ['<h6>', '<head>', '<h1>', '<header>']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: 'Build the JavaScript variable declaration snippet',
+          prompt: 'Declare variable "score" as 100',
+          answerTokens: ['const', 'score', '=', '100', ';'],
+          poolTokens: ['let', 'const', 'score', '=', '100', 'var', ';', '100;']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: 'Assess the React framework concept',
+          prompt: 'React uses a Virtual DOM to optimize view re-renders.',
+          answer: 'True'
+        },
+        {
+          type: 'FLASHCARD',
+          instruction: 'Flip card to learn CSS Flexbox alignment',
+          prompt: 'justify-content: center;',
+          answer: 'Aligns flex items along the main axis to the center.'
+        }
       ],
       music: [
-        { type: 'MC', instruction: 'Music Reading Question', prompt: 'Which note sits on the bottom line of the Treble Clef?', answer: 'E4', options: ['C4', 'E4', 'G4', 'F4'] },
-        { type: 'WORDBANK', instruction: 'Assemble the notes of a C Major triad chord', prompt: 'C Major Chord', answerTokens: ['C', 'E', 'G'], poolTokens: ['C', 'D', 'E', 'F', 'G', 'A', 'B'] },
-        { type: 'TRUEFALSE', instruction: 'Music Intervals check', prompt: 'An octave contains 12 semitones.', answer: 'True' }
+        {
+          type: 'MC',
+          instruction: 'Music Reading Question',
+          prompt: 'Which note sits on the bottom line of the Treble Clef?',
+          answer: 'E4',
+          options: ['C4', 'E4', 'G4', 'F4']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: 'Assemble the notes of a C Major triad chord',
+          prompt: 'C Major Chord',
+          answerTokens: ['C', 'E', 'G'],
+          poolTokens: ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: 'Music Intervals check',
+          prompt: 'An octave contains 12 semitones.',
+          answer: 'True'
+        }
       ],
       chess: [
-        { type: 'MC', instruction: 'Chess Piece Movement Rules', prompt: 'Which piece moves in an "L" shape across the board?', answer: 'Knight', options: ['Bishop', 'Rook', 'Knight', 'Pawn'] },
-        { type: 'TRUEFALSE', instruction: 'Castling Rules', prompt: 'Can you castle if your King is currently in Check?', answer: 'False' }
+        {
+          type: 'MC',
+          instruction: 'Chess Piece Movement Rules',
+          prompt: 'Which piece moves in an "L" shape across the board?',
+          answer: 'Knight',
+          options: ['Bishop', 'Rook', 'Knight', 'Pawn']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: 'Castling Rules',
+          prompt: 'Can you castle if your King is currently in Check?',
+          answer: 'False'
+        }
       ],
       math: [
-        { type: 'MC', instruction: 'Algebraic Calculation', prompt: 'Solve for x: 3x - 5 = 10', answer: 'x = 5', options: ['x = 3', 'x = 5', 'x = 15', 'x = 2'] },
-        { type: 'WORDBANK', instruction: 'Sort numbers in ascending order', prompt: 'Order from lowest to highest: 42, 7, 19', answerTokens: ['7', '19', '42'], poolTokens: ['42', '7', '19'] }
+        {
+          type: 'MC',
+          instruction: 'Algebraic Calculation',
+          prompt: 'Solve for x: 3x - 5 = 10',
+          answer: 'x = 5',
+          options: ['x = 3', 'x = 5', 'x = 15', 'x = 2']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: 'Sort numbers in ascending order',
+          prompt: 'Order from lowest to highest: 42, 7, 19',
+          answerTokens: ['7', '19', '42'],
+          poolTokens: ['42', '7', '19']
+        }
       ],
       es: [
-        { type: 'MC', instruction: 'Translate this word to English', prompt: 'El gato', answer: 'The cat', options: ['The dog', 'The cat', 'The bird', 'The house'] },
-        { type: 'WORDBANK', instruction: 'Build the Spanish translation', prompt: 'I want to drink water', answerTokens: ['Yo', 'quiero', 'beber', 'agua'], poolTokens: ['Yo', 'comere', 'quiero', 'beber', 'leche', 'agua', 'por'] }
+        {
+          type: 'MC',
+          instruction: 'Translate this word to English',
+          prompt: 'El gato',
+          answer: 'The cat',
+          options: ['The dog', 'The cat', 'The bird', 'The house']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: 'Build the Spanish translation',
+          prompt: 'I want to drink water',
+          answerTokens: ['Yo', 'quiero', 'beber', 'agua'],
+          poolTokens: ['Yo', 'comere', 'quiero', 'beber', 'leche', 'agua', 'por']
+        }
       ],
       'zh-sim': [
-        { type: 'MC', instruction: 'Translate to Pinyin', prompt: '你好 (Greetings)', answer: 'Nǐ hǎo', options: ['Nǐ hǎo', 'Xièxiè', 'Zàijiàn', 'Míngtiān'] },
-        { type: 'TRUEFALSE', instruction: 'Tone check', prompt: 'Mandarin Chinese has 4 standard pitch tones.', answer: 'True' }
+        {
+          type: 'MC',
+          instruction: 'Translate to Pinyin',
+          prompt: '你好 (Greetings)',
+          answer: 'Nǐ hǎo',
+          options: ['Nǐ hǎo', 'Xièxiè', 'Zàijiàn', 'Míngtiān']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: 'Tone check',
+          prompt: 'Mandarin Chinese has 4 standard pitch tones.',
+          answer: 'True'
+        }
       ]
     };
 
@@ -490,12 +571,12 @@
           type: 'MC',
           instruction: `Translate primary phrase in ${subject.name}`,
           prompt: 'Hello / Welcome',
-          answer: `Core ${subject.name} Greeting`,
-          options: [`Core ${subject.name} Greeting`, 'Alternative Expression', 'Secondary Vocabulary', 'Advanced Syntax']
+          answer: 'Unit Phrase A',
+          options: ['Unit Phrase A', 'Unit Phrase B', 'Unit Phrase C', 'Unit Phrase D']
         },
         {
           type: 'WORDBANK',
-          instruction: `Build foundational phrase in ${subject.name}`,
+          instruction: `Build the translation in ${subject.name}`,
           prompt: 'Thank you very much',
           answerTokens: ['Thank', 'you', 'very', 'much'],
           poolTokens: ['Thank', 'please', 'you', 'good', 'very', 'much']
@@ -503,28 +584,26 @@
         {
           type: 'TRUEFALSE',
           instruction: `Grammar check for ${subject.name}`,
-          prompt: 'Does this module cover primary foundational principles?',
+          prompt: 'Is this skill module part of Unit 1 Fundamentals?',
           answer: 'True'
         },
         {
           type: 'FLASHCARD',
-          instruction: 'Key Concept Review Flashcard',
+          instruction: `Key Concept Card`,
           prompt: `${subject.name} - Essential Module`,
-          answer: 'Core structural vocabulary and standard practice expressions for this subject.'
+          answer: 'Core structural vocabulary and standard practice expressions.'
         }
       ];
     }
   </script>
 
   <script>
-    // --- MAIN APPLICATION CONTROLLER ---
     class AppController {
       constructor() {
         this.user = {
           streak: 1,
-          gems: 100,
+          gems: 50,
           hearts: 5,
-          unlimitedHearts: false,
           xp: 0,
           activeSubjectId: 'webdev',
           completedLessons: {}
@@ -551,7 +630,7 @@
       }
 
       loadStorage() {
-        const saved = localStorage.getItem('lingoquest_app_v4');
+        const saved = localStorage.getItem('lingoquest_app_v3');
         if (saved) {
           try {
             this.user = { ...this.user, ...JSON.parse(saved) };
@@ -560,44 +639,21 @@
       }
 
       saveStorage() {
-        localStorage.setItem('lingoquest_app_v4', JSON.stringify(this.user));
+        localStorage.setItem('lingoquest_app_v3', JSON.stringify(this.user));
         this.updateHUD();
       }
 
       updateHUD() {
         document.getElementById('hud-streak').innerText = this.user.streak;
         document.getElementById('hud-gems').innerText = this.user.gems;
+        document.getElementById('hud-hearts').innerText = this.user.hearts;
         document.getElementById('hud-xp').innerText = this.user.xp;
-
-        const heartCountSpan = document.getElementById('hud-hearts');
-        const heartIcon = document.getElementById('hud-heart-icon');
-        const footerUnlimitedText = document.getElementById('footer-unlimited-text');
-
-        if (this.user.unlimitedHearts) {
-          heartCountSpan.innerHTML = '<i class="fa-solid fa-infinity text-xs"></i>';
-          heartIcon.className = 'fa-solid fa-infinity text-duoRed text-base sm:text-lg';
-          if (footerUnlimitedText) footerUnlimitedText.innerText = 'Infinite Hearts: ON';
-        } else {
-          heartCountSpan.innerText = this.user.hearts;
-          heartIcon.className = 'fa-solid fa-heart text-base sm:text-lg';
-          if (footerUnlimitedText) footerUnlimitedText.innerText = 'Toggle Infinite Hearts';
-        }
 
         const sub = SUBJECTS_DATA.find(s => s.id === this.user.activeSubjectId);
         if (sub) {
           document.getElementById('active-flag').innerText = sub.flag;
           document.getElementById('active-title').innerText = sub.name;
         }
-      }
-
-      toggleUnlimitedHearts() {
-        this.user.unlimitedHearts = !this.user.unlimitedHearts;
-        if (this.user.unlimitedHearts) {
-          this.user.hearts = 5;
-          confetti({ particleCount: 40, spread: 60, origin: { y: 0.2 } });
-        }
-        this.saveStorage();
-        audioManager.playCorrect();
       }
 
       showDashboard() {
@@ -676,41 +732,34 @@
           node.className = 'flex flex-col items-center space-y-2 w-full';
 
           let btnClass = 'bg-duoGreen shadow-btn-green text-white';
-          let iconClass = lvl.icon;
-
-          if (isDone) {
-            btnClass = 'bg-duoYellow shadow-btn-green text-white';
-            iconClass = 'fa-check';
-          } else if (isLocked) {
-            btnClass = 'bg-slate-200 shadow-btn-gray text-slate-400 cursor-not-allowed';
-            iconClass = 'fa-lock';
-          }
+          if (isDone) btnClass = 'bg-duoYellow shadow-btn-yellow text-white';
+          if (isLocked) btnClass = 'bg-slate-200 shadow-btn-gray text-slate-400 cursor-not-allowed';
 
           node.innerHTML = `
-            <div class="text-xs font-black uppercase tracking-wider text-slate-400">${lvl.title}</div>
-            <button onclick="app.startLesson('${subject.id}', ${lvl.level})" ${isLocked ? 'disabled' : ''}
-              class="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black ${btnClass} btn-bounce transition">
-              <i class="fa-solid ${iconClass}"></i>
+            <button ${isLocked ? 'disabled' : ''} onclick="app.startQuiz('${subject.id}', ${lvl.level})" 
+              class="w-20 h-20 rounded-full ${btnClass} font-black text-2xl flex items-center justify-center btn-bounce transition relative">
+              <i class="fa-solid ${lvl.icon}"></i>
+              ${isDone ? '<div class="absolute -bottom-1 -right-1 bg-duoYellow border-2 border-white text-xs w-6 h-6 rounded-full flex items-center justify-center"><i class="fa-solid fa-check text-white"></i></div>' : ''}
             </button>
+            <span class="font-extrabold text-sm text-slate-700">${lvl.title}</span>
           `;
           treeContainer.appendChild(node);
         });
       }
 
-      startLesson(subjectId, level) {
-        const sub = SUBJECTS_DATA.find(s => s.id === subjectId);
-        if (!sub) return;
-
-        let bank = QUESTION_BANK[subjectId];
-        if (!bank || bank.length === 0) {
-          bank = generateGenericQuestions(sub);
+      startQuiz(subjectId, level) {
+        if (this.user.hearts <= 0) {
+          alert('Out of hearts! Please refill hearts using Gems in the footer.');
+          return;
         }
 
-        // Shuffle or pick exercises for the session
+        const sub = SUBJECTS_DATA.find(s => s.id === subjectId);
+        let qList = QUESTION_BANK[subjectId] || generateGenericQuestions(sub);
+
         this.currentQuiz = {
           subject: sub,
           level: level,
-          questions: [...bank],
+          questions: qList,
           index: 0,
           correctCount: 0,
           selectedAnswer: null,
@@ -718,7 +767,6 @@
         };
 
         document.getElementById('view-dashboard').classList.add('hidden');
-        document.getElementById('view-complete').classList.add('hidden');
         document.getElementById('view-quiz').classList.remove('hidden');
 
         this.loadQuestion();
@@ -726,233 +774,190 @@
 
       loadQuestion() {
         const q = this.currentQuiz.questions[this.currentQuiz.index];
-        const total = this.currentQuiz.questions.length;
-        const pct = (this.currentQuiz.index / total) * 100;
-
-        document.getElementById('quiz-progress-bar').style.width = `${pct}%`;
-        document.getElementById('quiz-hearts-count').innerText = this.user.unlimitedHearts ? '∞' : this.user.hearts;
-        document.getElementById('quiz-footer').classList.add('hidden');
-
-        document.getElementById('quiz-instruction').innerText = q.instruction;
-        document.getElementById('quiz-prompt-text').innerText = q.prompt;
-
-        const tag = document.getElementById('quiz-type-tag');
-        if (q.type === 'MC') tag.innerText = 'Multiple Choice';
-        else if (q.type === 'WORDBANK') tag.innerText = 'Word Builder';
-        else if (q.type === 'TRUEFALSE') tag.innerText = 'True or False';
-        else if (q.type === 'FLASHCARD') tag.innerText = 'Interactive Flashcard';
-
-        const area = document.getElementById('quiz-interaction-area');
-        area.innerHTML = '';
         this.currentQuiz.selectedAnswer = null;
         this.currentQuiz.wordBankSelected = [];
 
+        // Progress bar
+        const pct = (this.currentQuiz.index / this.currentQuiz.questions.length) * 100;
+        document.getElementById('quiz-progress-bar').style.width = `${pct}%`;
+        document.getElementById('quiz-hearts-count').innerText = this.user.hearts;
+
+        document.getElementById('quiz-type-tag').innerText = q.type;
+        document.getElementById('quiz-instruction').innerText = q.instruction;
+        document.getElementById('quiz-prompt-text').innerText = q.prompt;
+
+        // Hide Footer
+        document.getElementById('quiz-footer').className = 'hidden';
+
+        const area = document.getElementById('quiz-interaction-area');
+        area.innerHTML = '';
+
         if (q.type === 'MC') {
-          const shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
-          const grid = document.createElement('div');
-          grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
-
-          shuffledOpts.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'p-4 bg-white border-2 border-slate-200 hover:border-duoBlue rounded-2xl font-black text-slate-700 shadow-card-3d btn-bounce transition text-left flex items-center justify-between';
-            btn.innerHTML = `<span>${opt}</span><div class="w-5 h-5 rounded-full border-2 border-slate-300"></div>`;
-            btn.onclick = () => {
-              grid.querySelectorAll('button').forEach(b => b.classList.remove('border-duoBlue', 'bg-sky-50'));
-              btn.classList.add('border-duoBlue', 'bg-sky-50');
-              this.currentQuiz.selectedAnswer = opt;
-              this.enableCheckButton();
-            };
-            grid.appendChild(btn);
-          });
-          area.appendChild(grid);
-        } 
-        else if (q.type === 'TRUEFALSE') {
-          const grid = document.createElement('div');
-          grid.className = 'grid grid-cols-2 gap-4';
-
-          ['True', 'False'].forEach(val => {
-            const isTrue = val === 'True';
-            const btn = document.createElement('button');
-            btn.className = `p-6 bg-white border-2 border-slate-200 hover:border-duoBlue rounded-2xl font-black text-xl shadow-card-3d btn-bounce transition text-center ${isTrue ? 'text-duoGreen' : 'text-duoRed'}`;
-            btn.innerHTML = `<i class="fa-solid ${isTrue ? 'fa-check' : 'fa-xmark'} text-2xl block mb-1"></i>${val}`;
-            btn.onclick = () => {
-              grid.querySelectorAll('button').forEach(b => b.classList.remove('border-duoBlue', 'bg-sky-50'));
-              btn.classList.add('border-duoBlue', 'bg-sky-50');
-              this.currentQuiz.selectedAnswer = val;
-              this.enableCheckButton();
-            };
-            grid.appendChild(btn);
-          });
-          area.appendChild(grid);
+          this.renderMultipleChoice(q, area);
+        } else if (q.type === 'WORDBANK') {
+          this.renderWordBank(q, area);
+        } else if (q.type === 'TRUEFALSE') {
+          this.renderTrueFalse(q, area);
+        } else if (q.type === 'FLASHCARD') {
+          this.renderFlashcard(q, area);
         }
-        else if (q.type === 'WORDBANK') {
-          const container = document.createElement('div');
-          container.className = 'space-y-6';
 
-          const dropArea = document.createElement('div');
-          dropArea.id = 'wb-drop';
-          dropArea.className = 'min-h-[70px] p-4 bg-slate-100 border-2 border-dashed border-slate-300 rounded-2xl flex flex-wrap gap-2 items-center';
-          dropArea.innerHTML = '<span class="text-slate-400 font-bold text-sm">Tap tiles below to build phrase...</span>';
-
-          const poolArea = document.createElement('div');
-          poolArea.className = 'flex flex-wrap gap-2 pt-2';
-
-          const tokens = [...q.poolTokens].sort(() => Math.random() - 0.5);
-          tokens.forEach((token, idx) => {
-            const chip = document.createElement('button');
-            chip.className = 'px-4 py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-slate-700 shadow-card-3d btn-bounce transition';
-            chip.innerText = token;
-            chip.onclick = () => {
-              chip.remove();
-              this.currentQuiz.wordBankSelected.push({ token, chipRef: chip });
-              this.renderWordBankSelection(q);
-            };
-            poolArea.appendChild(chip);
-          });
-
-          container.appendChild(dropArea);
-          container.appendChild(poolArea);
-          area.appendChild(container);
-          this.enableCheckButton();
-        }
-        else if (q.type === 'FLASHCARD') {
-          const wrapper = document.createElement('div');
-          wrapper.className = 'perspective-1000 w-full h-64 cursor-pointer';
-          wrapper.innerHTML = `
-            <div id="flashcard-inner" class="relative w-full h-full text-center transition-transform duration-500 transform-style-3d shadow-card-3d rounded-3xl">
-              <div class="absolute inset-0 bg-white border-2 border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center backface-hidden">
-                <span class="text-xs font-black uppercase text-duoBlue mb-2">Tap to Flip Card</span>
-                <h3 class="text-2xl font-black text-slate-800">${q.prompt}</h3>
-              </div>
-              <div class="absolute inset-0 bg-sky-50 border-2 border-duoBlue rounded-3xl p-6 flex flex-col items-center justify-center backface-hidden rotate-y-180">
-                <span class="text-xs font-black uppercase text-duoGreen mb-2">Answer / Definition</span>
-                <p class="text-lg font-bold text-slate-700">${q.answer}</p>
-              </div>
-            </div>
-          `;
-
-          let isFlipped = false;
-          wrapper.onclick = () => {
-            isFlipped = !isFlipped;
-            const inner = document.getElementById('flashcard-inner');
-            inner.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
-            this.currentQuiz.selectedAnswer = q.answer; // Auto verified on flip
-            this.enableCheckButton();
-          };
-          area.appendChild(wrapper);
-        }
+        audioManager.speak(q.prompt);
       }
 
-      renderWordBankSelection(q) {
-        const dropArea = document.getElementById('wb-drop');
-        dropArea.innerHTML = '';
+      speakCurrentPrompt() {
+        const q = this.currentQuiz.questions[this.currentQuiz.index];
+        if (q) audioManager.speak(q.prompt);
+      }
 
-        if (this.currentQuiz.wordBankSelected.length === 0) {
-          dropArea.innerHTML = '<span class="text-slate-400 font-bold text-sm">Tap tiles below to build phrase...</span>';
-          this.currentQuiz.selectedAnswer = '';
-          return;
-        }
+      renderMultipleChoice(q, container) {
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
 
-        this.currentQuiz.wordBankSelected.forEach((item, index) => {
-          const chip = document.createElement('button');
-          chip.className = 'px-4 py-2 bg-duoBlue text-white rounded-xl font-black shadow transition btn-bounce';
-          chip.innerText = item.token;
-          chip.onclick = () => {
-            // Return token back
-            item.chipRef.style.display = 'inline-block';
-            this.currentQuiz.wordBankSelected.splice(index, 1);
-            this.renderWordBankSelection(q);
-          };
-          dropArea.appendChild(chip);
+        q.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'p-4 rounded-2xl border-2 border-slate-200 hover:border-duoBlue hover:bg-slate-50 font-black text-slate-700 text-left transition shadow-card-3d btn-bounce';
+          btn.innerText = opt;
+          btn.onclick = () => this.evaluateAnswer(opt, q.answer, btn);
+          grid.appendChild(btn);
         });
 
-        this.currentQuiz.selectedAnswer = this.currentQuiz.wordBankSelected.map(i => i.token).join(' ');
-        this.enableCheckButton();
+        container.appendChild(grid);
       }
 
-      enableCheckButton() {
-        const footer = document.getElementById('quiz-footer');
-        footer.classList.remove('hidden', 'bg-green-100', 'border-green-300', 'bg-red-100', 'border-red-300');
-        footer.classList.add('bg-white', 'border-slate-200');
+      renderTrueFalse(q, container) {
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-2 gap-4';
 
-        const iconBox = document.getElementById('feedback-icon-box');
-        iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-black shrink-0 bg-duoGreen';
-        iconBox.innerHTML = '<i class="fa-solid fa-check"></i>';
+        ['True', 'False'].forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = `p-6 rounded-2xl border-2 border-slate-200 font-black text-xl text-center shadow-card-3d btn-bounce transition ${
+            opt === 'True' ? 'hover:border-duoGreen hover:bg-green-50 text-duoGreen' : 'hover:border-duoRed hover:bg-red-50 text-duoRed'
+          }`;
+          btn.innerText = opt;
+          btn.onclick = () => this.evaluateAnswer(opt, q.answer, btn);
+          grid.appendChild(btn);
+        });
 
-        document.getElementById('feedback-title').innerText = 'Ready to Submit';
-        document.getElementById('feedback-title').className = 'font-black text-lg text-slate-800';
-        document.getElementById('feedback-desc').innerText = 'Check your response to continue your lesson.';
-        document.getElementById('feedback-desc').className = 'font-bold text-sm text-slate-500';
-
-        const btn = document.getElementById('btn-next-step');
-        btn.innerText = 'Check Answer';
-        btn.className = 'w-full sm:w-auto bg-duoGreen hover:bg-duoGreenDark text-white font-black py-3.5 px-8 rounded-2xl shadow-btn-green btn-bounce transition uppercase tracking-wider text-sm';
-        btn.onclick = () => this.verifyAnswer();
+        container.appendChild(grid);
       }
 
-      verifyAnswer() {
-        const q = this.currentQuiz.questions[this.currentQuiz.index];
-        let isCorrect = false;
+      renderWordBank(q, container) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'space-y-6';
 
-        if (q.type === 'WORDBANK') {
-          isCorrect = this.currentQuiz.selectedAnswer === q.answerTokens.join(' ');
-        } else if (q.type === 'FLASHCARD') {
-          isCorrect = true; // Flashcards always pass on review
-        } else {
-          isCorrect = this.currentQuiz.selectedAnswer === q.answer;
-        }
+        // Target Slot
+        const slot = document.createElement('div');
+        slot.id = 'wordbank-slot';
+        slot.className = 'min-h-[60px] p-3 border-b-2 border-slate-200 flex flex-wrap gap-2 items-center';
 
+        // Source Pool
+        const pool = document.createElement('div');
+        pool.id = 'wordbank-pool';
+        pool.className = 'flex flex-wrap gap-2 justify-center pt-4';
+
+        q.poolTokens.forEach((token, idx) => {
+          const btn = document.createElement('button');
+          btn.id = `wb-token-${idx}`;
+          btn.className = 'px-4 py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-slate-700 shadow-card-3d btn-bounce';
+          btn.innerText = token;
+          btn.onclick = () => {
+            if (btn.parentElement.id === 'wordbank-pool') {
+              slot.appendChild(btn);
+              this.currentQuiz.wordBankSelected.push(token);
+            } else {
+              pool.appendChild(btn);
+              this.currentQuiz.wordBankSelected = this.currentQuiz.wordBankSelected.filter(t => t !== token);
+            }
+          };
+          pool.appendChild(btn);
+        });
+
+        wrapper.appendChild(slot);
+        wrapper.appendChild(pool);
+
+        // Submit Button
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'w-full py-3 bg-duoBlue hover:bg-duoBlueDark text-white font-black rounded-2xl shadow-btn-blue btn-bounce uppercase';
+        submitBtn.innerText = 'Check Answer';
+        submitBtn.onclick = () => {
+          const userStr = this.currentQuiz.wordBankSelected.join(' ');
+          const targetStr = q.answerTokens.join(' ');
+          this.evaluateAnswer(userStr, targetStr, submitBtn);
+        };
+        wrapper.appendChild(submitBtn);
+
+        container.appendChild(wrapper);
+      }
+
+      renderFlashcard(q, container) {
+        const cardWrapper = document.createElement('div');
+        cardWrapper.className = 'perspective-1000 w-full h-48 cursor-pointer';
+
+        const inner = document.createElement('div');
+        inner.className = 'relative w-full h-full rounded-3xl border-2 border-slate-200 bg-white shadow-card-3d transition-transform duration-500 transform-style-3d flex items-center justify-center p-6 text-center';
+        
+        inner.innerHTML = `
+          <div class="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-4">
+            <span class="text-xs font-black uppercase text-slate-400 mb-2">Click card to flip</span>
+            <span class="text-2xl font-black text-slate-800">${q.prompt}</span>
+          </div>
+          <div class="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-4 bg-duoGreen/10 rounded-3xl">
+            <span class="text-xs font-black uppercase text-duoGreen mb-2">Definition / Answer</span>
+            <span class="text-lg font-black text-slate-800">${q.answer}</span>
+          </div>
+        `;
+
+        let flipped = false;
+        cardWrapper.onclick = () => {
+          flipped = !flipped;
+          inner.style.transform = flipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+        };
+
+        const gotItBtn = document.createElement('button');
+        gotItBtn.className = 'w-full mt-4 py-3 bg-duoGreen hover:bg-duoGreenDark text-white font-black rounded-2xl shadow-btn-green btn-bounce uppercase';
+        gotItBtn.innerText = 'I Got It!';
+        gotItBtn.onclick = () => this.evaluateAnswer('GOT_IT', 'GOT_IT', gotItBtn);
+
+        container.appendChild(cardWrapper);
+        container.appendChild(gotItBtn);
+      }
+
+      evaluateAnswer(userAns, correctAns, element) {
+        if (this.currentQuiz.selectedAnswer !== null) return;
+        this.currentQuiz.selectedAnswer = userAns;
+
+        const isCorrect = userAns.trim().toLowerCase() === correctAns.trim().toLowerCase();
         const footer = document.getElementById('quiz-footer');
         const iconBox = document.getElementById('feedback-icon-box');
         const title = document.getElementById('feedback-title');
         const desc = document.getElementById('feedback-desc');
-        const btn = document.getElementById('btn-next-step');
 
         if (isCorrect) {
-          this.currentQuiz.correctCount++;
           audioManager.playCorrect();
-
-          footer.className = 'p-4 sm:p-6 rounded-3xl border-2 transition-all duration-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-green-100 border-green-300';
-          iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-black shrink-0 bg-duoGreen';
+          this.currentQuiz.correctCount++;
+          
+          footer.className = 'p-4 sm:p-6 rounded-3xl border-2 border-green-300 bg-green-100 text-green-800 flex flex-col sm:flex-row items-center justify-between gap-4';
+          iconBox.className = 'w-12 h-12 rounded-full bg-duoGreen flex items-center justify-center text-white text-2xl font-black shrink-0';
           iconBox.innerHTML = '<i class="fa-solid fa-check"></i>';
-          title.className = 'font-black text-lg text-green-800';
-          title.innerText = 'Great job!';
-          desc.className = 'font-bold text-sm text-green-600';
-          desc.innerText = 'Your response is entirely correct.';
-
-          btn.innerText = 'Continue';
-          btn.className = 'w-full sm:w-auto bg-duoGreen hover:bg-duoGreenDark text-white font-black py-3.5 px-8 rounded-2xl shadow-btn-green btn-bounce transition uppercase tracking-wider text-sm';
-          btn.onclick = () => this.proceedNext();
+          title.innerText = 'Excellent!';
+          desc.innerText = 'You solved this exercise correctly.';
         } else {
           audioManager.playWrong();
-          if (!this.user.unlimitedHearts) {
-            this.user.hearts = Math.max(0, this.user.hearts - 1);
-            this.saveStorage();
-          }
+          this.user.hearts = Math.max(0, this.user.hearts - 1);
+          this.saveStorage();
 
-          footer.className = 'p-4 sm:p-6 rounded-3xl border-2 transition-all duration-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-red-100 border-red-300';
-          iconBox.className = 'w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-black shrink-0 bg-duoRed';
+          footer.className = 'p-4 sm:p-6 rounded-3xl border-2 border-red-300 bg-red-100 text-red-800 flex flex-col sm:flex-row items-center justify-between gap-4';
+          iconBox.className = 'w-12 h-12 rounded-full bg-duoRed flex items-center justify-center text-white text-2xl font-black shrink-0';
           iconBox.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-          title.className = 'font-black text-lg text-red-800';
           title.innerText = 'Correct answer:';
-          desc.className = 'font-bold text-sm text-red-600';
-          desc.innerText = q.answer;
-
-          btn.innerText = 'Got it';
-          btn.className = 'w-full sm:w-auto bg-duoRed hover:bg-duoRedDark text-white font-black py-3.5 px-8 rounded-2xl shadow-btn-red btn-bounce transition uppercase tracking-wider text-sm';
-          btn.onclick = () => this.proceedNext();
-
-          if (!this.user.unlimitedHearts && this.user.hearts <= 0) {
-            setTimeout(() => {
-              alert('Out of hearts! Refill hearts from the shop or footer to keep playing.');
-              this.showDashboard();
-            }, 1000);
-            return;
-          }
+          desc.innerText = correctAns;
         }
+
+        footer.classList.remove('hidden');
       }
 
-      proceedNext() {
+      nextQuestion() {
         this.currentQuiz.index++;
         if (this.currentQuiz.index < this.currentQuiz.questions.length) {
           this.loadQuestion();
@@ -962,21 +967,30 @@
       }
 
       completeLesson() {
-        document.getElementById('view-quiz').classList.add('hidden');
-        document.getElementById('view-complete').classList.remove('hidden');
-
         audioManager.playFanfare();
-        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
 
         const key = `${this.currentQuiz.subject.id}_lvl_${this.currentQuiz.level}`;
         this.user.completedLessons[key] = true;
-        this.user.xp += 25;
-        this.user.gems += 10;
+        
+        const earnedXP = this.currentQuiz.correctCount * 10;
+        this.user.xp += earnedXP;
+        this.user.gems += 5;
         this.saveStorage();
 
-        document.getElementById('complete-xp').innerHTML = '<i class="fa-solid fa-bolt"></i> <span>+25 XP</span>';
+        document.getElementById('complete-xp').innerText = `+${earnedXP} XP`;
         const accuracy = Math.round((this.currentQuiz.correctCount / this.currentQuiz.questions.length) * 100);
-        document.getElementById('complete-accuracy').innerHTML = `<i class="fa-solid fa-bullseye"></i> <span>${accuracy}%</span>`;
+        document.getElementById('complete-accuracy').innerText = `${accuracy}%`;
+
+        document.getElementById('view-quiz').classList.add('hidden');
+        document.getElementById('view-complete').classList.remove('hidden');
+
+        if (window.confetti) {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
       }
 
       finishLessonAndReturn() {
@@ -984,28 +998,35 @@
         this.selectSubject(this.user.activeSubjectId, false);
       }
 
-      speakCurrentPrompt() {
-        const q = this.currentQuiz.questions[this.currentQuiz.index];
-        if (q && q.prompt) {
-          audioManager.speak(q.prompt);
-        }
-      }
-
       confirmExitQuiz() {
-        if (confirm('Are you sure you want to quit this lesson? Your progress for this session will be lost.')) {
+        if (confirm('Exit practice? Session progress will be lost.')) {
           this.showDashboard();
         }
       }
 
+      refillHearts() {
+        if (this.user.gems >= 50) {
+          this.user.gems -= 50;
+          this.user.hearts = 5;
+          this.saveStorage();
+          alert('Hearts refilled to max (5)!');
+        } else {
+          alert('Not enough gems! Complete lessons to earn gems.');
+        }
+      }
+
       resetUserData() {
-        if (confirm('Reset all progress, streaks, and completed levels?')) {
-          localStorage.removeItem('lingoquest_app_v4');
+        if (confirm('Reset all learned XP, streaks, and course progress?')) {
+          localStorage.removeItem('lingoquest_app_v3');
           location.reload();
         }
       }
     }
 
-    const app = new AppController();
+    let app;
+    window.addEventListener('DOMContentLoaded', () => {
+      app = new AppController();
+    });
   </script>
 </body>
 </html>
