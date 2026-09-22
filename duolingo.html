@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LingoQuest - Master 45+ Skills, Languages & Code</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            duoGreen: '#58cc02',
+            duoGreenDark: '#46a302',
+            duoBlue: '#1cb0f6',
+            duoBlueDark: '#1899d6',
+            duoRed: '#ff4b4b',
+            duoRedDark: '#ea2b2b',
+            duoYellow: '#ffc800',
+            duoYellowDark: '#e5b200',
+            duoPurple: '#ce82ff',
+            duoPurpleDark: '#af62e0',
+            duoGray: '#e5e7eb',
+            duoDark: '#3c3c3c'
+          },
+          boxShadow: {
+            'btn-green': '0 4px 0 #46a302',
+            'btn-green-active': '0 0 0 #46a302',
+            'btn-blue': '0 4px 0 #1899d6',
+            'btn-blue-active': '0 0 0 #1899d6',
+            'btn-red': '0 4px 0 #ea2b2b',
+            'btn-purple': '0 4px 0 #af62e0',
+            'btn-gray': '0 4px 0 #cbd5e1',
+            'card-3d': '0 6px 0 #e2e8f0'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+    
+    body {
+      font-family: 'Nunito', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .btn-bounce {
+      transition: all 0.1s ease;
+    }
+    .btn-bounce:active {
+      transform: translateY(4px);
+    }
+
+    /* 3D Flip Card CSS */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+  <header class="bg-white border-b-2 border-slate-200 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="app.showDashboard()">
+        <div class="bg-duoGreen text-white p-2 rounded-2xl flex items-center justify-center w-10 h-10 shadow-btn-green">
+          <i class="fa-solid fa-feather-pointed text-xl"></i>
+        </div>
+        <span class="font-extrabold text-2xl tracking-wide text-duoGreen hidden sm:inline">lingoquest</span>
+      </div>
+
+      <!-- Live Active Subject Display -->
+      <div id="active-subject-badge" onclick="app.showDashboard()" class="cursor-pointer bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 px-3 py-1.5 rounded-2xl flex items-center space-x-2 transition">
+        <span id="active-flag" class="text-xl">🌐</span>
+        <span id="active-title" class="font-bold text-xs sm:text-sm text-slate-700">Select Subject</span>
+        <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+      </div>
+
+      <!-- User Stats HUD -->
+      <div class="flex items-center space-x-3 sm:space-x-5 font-black text-sm">
+        <!-- Streak -->
+        <div class="flex items-center text-amber-500 space-x-1" title="Daily Streak">
+          <i class="fa-solid fa-fire text-lg sm:text-xl animate-bounce"></i>
+          <span id="hud-streak">0</span>
+        </div>
+
+        <!-- Gems -->
+        <div class="flex items-center text-duoBlue space-x-1" title="Gems Currency">
+          <i class="fa-solid fa-gem text-base sm:text-lg"></i>
+          <span id="hud-gems">50</span>
+        </div>
+
+        <!-- Hearts Health -->
+        <div class="flex items-center text-duoRed space-x-1" title="Hearts Health">
+          <i class="fa-solid fa-heart text-base sm:text-lg"></i>
+          <span id="hud-hearts">5</span>
+        </div>
+
+        <!-- Total XP -->
+        <div class="flex items-center text-duoYellow space-x-1" title="Total Experience Points">
+          <i class="fa-solid fa-bolt text-base sm:text-lg"></i>
+          <span id="hud-xp">0</span>
+        </div>
+
+        <!-- Audio Mute Toggle -->
+        <button onclick="audioManager.toggleMute()" id="btn-audio-toggle" class="text-slate-400 hover:text-slate-600 p-1 text-lg">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6">
+
+    <!-- VIEW 1: Dashboard & Subject Grid -->
+    <section id="view-dashboard" class="space-y-8">
+      
+      <!-- Top Banner -->
+      <div class="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-card-3d flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-800">Choose a course to practice</h1>
+          <p class="text-slate-500 font-semibold text-sm mt-1">45 complete subjects spanning Languages, Web Dev, Math, Music, Chess & Conlangs.</p>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap sm:flex-nowrap gap-2 w-full md:w-auto">
+          <div class="relative w-full sm:w-48">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+            <input type="text" id="subject-search" oninput="app.filterSubjects()" placeholder="Search course..." 
+              class="w-full pl-9 pr-3 py-2 bg-slate-100 border-2 border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-duoBlue">
+          </div>
+          <select id="category-filter" onchange="app.filterSubjects()" class="bg-slate-100 border-2 border-slate-200 rounded-xl font-bold text-sm px-3 py-2 focus:outline-none focus:border-duoBlue">
+            <option value="ALL">All Categories</option>
+            <option value="Language">Languages</option>
+            <option value="Tech">Coding & Tech</option>
+            <option value="STEM">STEM & Math</option>
+            <option value="Logic">Logic & Games</option>
+            <option value="Arts">Music & Arts</option>
+            <option value="Fantasy">Fantasy & Conlangs</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Subject Grid -->
+      <div id="subject-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+      <!-- Skill Path Tree Section -->
+      <div id="path-section" class="hidden space-y-6 pt-6 border-t-2 border-slate-200">
+        <div class="text-center space-y-1">
+          <h2 id="path-title" class="text-2xl font-black text-slate-800">Subject Skill Path</h2>
+          <p class="text-slate-500 font-bold text-sm">Complete units to unlock higher mastery levels!</p>
+        </div>
+
+        <!-- Unit Node Skill Tree -->
+        <div id="lesson-tree-nodes" class="flex flex-col items-center space-y-6 max-w-sm mx-auto py-4">
+          <!-- Tree Nodes injected dynamically -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: Interactive Quiz Engine Screen -->
+    <section id="view-quiz" class="hidden max-w-xl mx-auto space-y-6 py-2">
+      
+      <!-- Quiz Header & Progress -->
+      <div class="flex items-center space-x-4">
+        <button onclick="app.confirmExitQuiz()" class="text-slate-400 hover:text-slate-600 text-2xl font-extrabold p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex-1 bg-slate-200 h-4 rounded-full overflow-hidden p-0.5 border border-slate-300">
+          <div id="quiz-progress-bar" class="bg-duoGreen h-full w-0 transition-all duration-300 rounded-full shadow-inner"></div>
+        </div>
+        <div class="flex items-center space-x-1 text-duoRed font-black text-lg">
+          <i class="fa-solid fa-heart"></i>
+          <span id="quiz-hearts-count">5</span>
+        </div>
+      </div>
+
+      <!-- Question Card Container -->
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border-2 border-slate-200 shadow-card-3d space-y-6 min-h-[380px] flex flex-col justify-between">
+        
+        <!-- Header / Prompt Info -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span id="quiz-type-tag" class="text-xs font-black uppercase tracking-wider px-3 py-1 bg-duoBlue/10 text-duoBlue rounded-full">Multiple Choice</span>
+            <button onclick="app.speakCurrentPrompt()" title="Listen Pronunciation" class="text-duoBlue hover:text-duoBlueDark text-2xl transition">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+          </div>
+          <h2 id="quiz-instruction" class="text-xl sm:text-2xl font-black text-slate-800">Select the correct translation</h2>
+          <div id="quiz-prompt-box" class="p-4 bg-slate-100 rounded-2xl border-2 border-slate-200 font-black text-xl text-slate-700 flex items-center justify-between">
+            <span id="quiz-prompt-text">...</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Answer Interaction Container -->
+        <div id="quiz-interaction-area" class="flex-1 flex flex-col justify-center py-2">
+          <!-- Injected dynamically per exercise type -->
+        </div>
+
+      </div>
+
+      <!-- Sticky Feedback Footer Bar -->
+      <div id="quiz-footer" class="hidden p-4 sm:p-6 rounded-3xl border-2 transition-all duration-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div id="feedback-content" class="flex items-center space-x-3 w-full sm:w-auto">
+          <div id="feedback-icon-box" class="w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-black shrink-0"></div>
+          <div>
+            <h4 id="feedback-title" class="font-black text-lg"></h4>
+            <p id="feedback-desc" class="font-bold text-sm"></p>
+          </div>
+        </div>
+        <button id="btn-next-step" onclick="app.nextQuestion()" class="w-full sm:w-auto bg-duoGreen hover:bg-duoGreenDark text-white font-black py-3.5 px-8 rounded-2xl shadow-btn-green btn-bounce transition uppercase tracking-wider text-sm">
+          Continue
+        </button>
+      </div>
+
+    </section>
+
+    <!-- VIEW 3: Completion Celebration View -->
+    <section id="view-complete" class="hidden text-center space-y-8 max-w-md mx-auto py-8">
+      <div class="relative inline-block">
+        <div class="w-32 h-32 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-6xl mx-auto shadow-inner border-4 border-amber-300 animate-bounce">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="absolute -top-2 -right-2 bg-duoGreen text-white text-xs font-black px-3 py-1 rounded-full shadow">
+          LEVEL UNLOCKED!
+        </div>
+      </div>
+
+      <div>
+        <h1 class="text-3xl font-black text-slate-800">Lesson Complete!</h1>
+        <p class="text-slate-500 font-bold mt-1">You've successfully mastered this module.</p>
+      </div>
+
+      <!-- Result Stats Card -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-card-3d">
+          <div class="text-xs font-black uppercase text-slate-400">Total XP Earned</div>
+          <div id="complete-xp" class="text-2xl font-black text-duoYellow flex items-center justify-center space-x-1 mt-1">
+            <i class="fa-solid fa-bolt"></i> <span>+20 XP</span>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-card-3d">
+          <div class="text-xs font-black uppercase text-slate-400">Accuracy</div>
+          <div id="complete-accuracy" class="text-2xl font-black text-duoGreen flex items-center justify-center space-x-1 mt-1">
+            <i class="fa-solid fa-bullseye"></i> <span>100%</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="app.finishLessonAndReturn()" class="w-full bg-duoGreen hover:bg-duoGreenDark text-white font-black py-4 rounded-2xl shadow-btn-green btn-bounce transition uppercase tracking-wider text-base">
+        Claim Rewards & Return
+      </button>
+    </section>
+
+  </main>
+
+  <footer class="bg-white border-t-2 border-slate-200 py-4 text-center text-xs font-extrabold text-slate-400">
+    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div>LingoQuest &copy; 2026 • Interactive Learning Engine</div>
+      <div class="flex space-x-4">
+        <button onclick="app.refillHearts()" class="hover:text-duoRed flex items-center space-x-1">
+          <i class="fa-solid fa-heart text-duoRed"></i> <span>Refill Hearts (50 Gems)</span>
+        </button>
+        <button onclick="app.resetUserData()" class="hover:text-slate-600">Reset Progress</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Confetti Canvas overlay -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+  <script>
+    class AudioSFXManager {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+      }
+
+      initContext() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        const icon = document.getElementById('btn-audio-toggle').querySelector('i');
+        if (this.isMuted) {
+          icon.className = 'fa-solid fa-volume-xmark text-duoRed';
+        } else {
+          icon.className = 'fa-solid fa-volume-high text-slate-400';
+          this.playCorrect();
+        }
+      }
+
+      playCorrect() {
+        if (this.isMuted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+        osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+
+      playWrong() {
+        if (this.isMuted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now); // A3
+        osc.frequency.setValueAtTime(174.61, now + 0.15); // F3
+
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.35);
+      }
+
+      playFanfare() {
+        if (this.isMuted) return;
+        this.initContext();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const now = this.ctx.currentTime + (idx * 0.12);
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.4);
+        });
+      }
+
+      speak(text) {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = 0.9;
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+    }
+
+    const audioManager = new AudioSFXManager();
+  </script>
+
+  <script>
+    const SUBJECTS_DATA = [
+      { id: 'webdev', name: 'Web Development', flag: '💻', category: 'Tech', desc: 'HTML, CSS, JS & MERN Architecture' },
+      { id: 'en', name: 'English', flag: '🇬🇧', category: 'Language', desc: 'Grammar, Idioms & Vocabulary' },
+      { id: 'zh-sim', name: 'Chinese (Simplified)', flag: '🇨🇳', category: 'Language', desc: 'Mandarin Pinyin & Simplified Characters' },
+      { id: 'es', name: 'Spanish', flag: '🇪🇸', category: 'Language', desc: 'Conversational Spanish & Verbs' },
+      { id: 'fr', name: 'French', flag: '🇫🇷', category: 'Language', desc: 'French Phonetics & Phrases' },
+      { id: 'chess', name: 'Chess Tactics', flag: '♟️', category: 'Logic', desc: 'Openings, Pins, Forks & Endgames' },
+      { id: 'ja', name: 'Japanese', flag: '🇯🇵', category: 'Language', desc: 'Hiragana, Katakana & Kanji' },
+      { id: 'de', name: 'German', flag: '🇩🇪', category: 'Language', desc: 'German Case System & Grammar' },
+      { id: 'math', name: 'Math Basics', flag: '🔢', category: 'STEM', desc: 'Arithmetic, Algebra & Geometry' },
+      { id: 'hi', name: 'Hindi', flag: '🇮🇳', category: 'Language', desc: 'Devanagari Script & Vocabulary' },
+      { id: 'ko', name: 'Korean', flag: '🇰🇷', category: 'Language', desc: 'Hangul Script & Popular Phrases' },
+      { id: 'it', name: 'Italian', flag: '🇮🇹', category: 'Language', desc: 'Italian Expressions & Grammar' },
+      { id: 'zh-tra', name: 'Chinese (Traditional)', flag: '🇹🇼', category: 'Language', desc: 'Traditional Characters & Pinyin' },
+      { id: 'ru', name: 'Russian', flag: '🇷🇺', category: 'Language', desc: 'Cyrillic Script & Cases' },
+      { id: 'ar', name: 'Arabic', flag: '🇦🇪', category: 'Language', desc: 'Arabic Alphabet & MSA Expressions' },
+      { id: 'pt', name: 'Portuguese', flag: '🇵🇹', category: 'Language', desc: 'Brazilian & European Portuguese' },
+      { id: 'tr', name: 'Turkish', flag: '🇹🇷', category: 'Language', desc: 'Vowel Harmony & Agglutination' },
+      { id: 'nl', name: 'Dutch', flag: '🇳🇱', category: 'Language', desc: 'Dutch Grammar & Daily Speech' },
+      { id: 'el', name: 'Greek', flag: '🇬🇷', category: 'Language', desc: 'Greek Alphabet & Modern Vocab' },
+      { id: 'pl', name: 'Polish', flag: '🇵🇱', category: 'Language', desc: 'Polish Conjugations & Vocabulary' },
+      { id: 'sv', name: 'Swedish', flag: '🇸🇪', category: 'Language', desc: 'Nordic Grammar & Useful Terms' },
+      { id: 'vi', name: 'Vietnamese', flag: '🇻🇳', category: 'Language', desc: 'Six Tones & Conversational Phrases' },
+      { id: 'la', name: 'Latin', flag: '🏛️', category: 'Language', desc: 'Classical Declensions & Roots' },
+      { id: 'no', name: 'Norwegian (Bokmål)', flag: '🇳🇴', category: 'Language', desc: 'Norwegian Grammar & Vocabulary' },
+      { id: 'ga', name: 'Irish', flag: '🇮🇪', category: 'Language', desc: 'Gaeilge Syntax & Phrases' },
+      { id: 'he', name: 'Hebrew', flag: '🇮🇱', category: 'Language', desc: 'Hebrew Alef-Bet & Verb Roots' },
+      { id: 'id', name: 'Indonesian', flag: '🇮🇩', category: 'Language', desc: 'Bahasa Indonesia Fundamentals' },
+      { id: 'val', name: 'High Valyrian', flag: '🐉', category: 'Fantasy', desc: 'Dragons & Valyrian Phrases' },
+      { id: 'uk', name: 'Ukrainian', flag: '🇺🇦', category: 'Language', desc: 'Ukrainian Cyrillic & Greetings' },
+      { id: 'fi', name: 'Finnish', flag: '🇫🇮', category: 'Language', desc: 'Finnish Cases & Vocabulary' },
+      { id: 'da', name: 'Danish', flag: '🇩🇰', category: 'Language', desc: 'Danish Vocabulary & Pronunciation' },
+      { id: 'ro', name: 'Romanian', flag: '🇷🇴', category: 'Language', desc: 'Romance Grammar & Key Words' },
+      { id: 'cs', name: 'Czech', flag: '🇨🇿', category: 'Language', desc: 'Czech Expressions & Conjugation' },
+      { id: 'zu', name: 'Zulu', flag: '🇿🇦', category: 'Language', desc: 'isiZulu Noun Classes & Greetings' },
+      { id: 'haw', name: 'Hawaiian', flag: '🌺', category: 'Language', desc: 'ʻŌlelo Hawaiʻi Vocabulary' },
+      { id: 'sw', name: 'Swahili', flag: '🇰🇪', category: 'Language', desc: 'Kiswahili Noun Prefix System' },
+      { id: 'cy', name: 'Welsh', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', category: 'Language', desc: 'Cymraeg Mutated Letters & Phrases' },
+      { id: 'hu', name: 'Hungarian', flag: '🇭🇺', category: 'Language', desc: 'Hungarian Agglutinative Grammar' },
+      { id: 'gd', name: 'Scottish Gaelic', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', category: 'Language', desc: 'Gàidhlig Syntax & Vocabulary' },
+      { id: 'ht', name: 'Haitian Creole', flag: '🇭🇹', category: 'Language', desc: 'Kreyòl Ayisyen Everyday Speech' },
+      { id: 'eo', name: 'Esperanto', flag: '🟢', category: 'Language', desc: 'Universal Planned Auxiliary Language' },
+      { id: 'tlh', name: 'Klingon', flag: '⚔️', category: 'Fantasy', desc: 'Star Trek Warrior Dialect & Verbs' },
+      { id: 'nv', name: 'Navajo', flag: '🦅', category: 'Language', desc: 'Diné Bizaad Verbs & Nouns' },
+      { id: 'yi', name: 'Yiddish', flag: '📜', category: 'Language', desc: 'Hebrew Script & Ashkenazi Idioms' },
+      { id: 'music', name: 'Music Theory', flag: '🎵', category: 'Arts', desc: 'Notes, Scales, Intervals & Chords' }
+    ];
+
+    /* Dynamic Question Bank per Subject */
+    const QUESTION_BANK = {
+      webdev: [
+        {
+          type: 'MC',
+          instruction: 'Which HTML element is used for the top-level heading?',
+          prompt: 'Identify the largest text header tag',
+          answer: '<h1>',
+          options: ['<h6>', '<head>', '<h1>', '<header>']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: 'Build the JavaScript variable declaration snippet',
+          prompt: 'Declare variable "score" as 100',
+          answerTokens: ['const', 'score', '=', '100', ';'],
+          poolTokens: ['let', 'const', 'score', '=', '100', 'var', ';', '100;']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: 'Assess the React framework concept',
+          prompt: 'React uses a Virtual DOM to optimize view re-renders.',
+          answer: 'True'
+        },
+        {
+          type: 'FLASHCARD',
+          instruction: 'Flip card to learn CSS Flexbox alignment',
+          prompt: 'justify-content: center;',
+          answer: 'Aligns flex items along the main axis to the center.'
+        }
+      ],
+      music: [
+        {
+          type: 'MC',
+          instruction: 'Music Reading Question',
+          prompt: 'Which note sits on the bottom line of the Treble Clef?',
+          answer: 'E4',
+          options: ['C4', 'E4', 'G4', 'F4']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: 'Assemble the notes of a C Major triad chord',
+          prompt: 'C Major Chord',
+          answerTokens: ['C', 'E', 'G'],
+          poolTokens: ['C', 'D', 'E', 'F', 'G', 'A', 'B']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: 'Music Intervals check',
+          prompt: 'An octave contains 12 semitones.',
+          answer: 'True'
+        }
+      ],
+      chess: [
+        {
+          type: 'MC',
+          instruction: 'Chess Piece Movement Rules',
+          prompt: 'Which piece moves in an "L" shape across the board?',
+          answer: 'Knight',
+          options: ['Bishop', 'Rook', 'Knight', 'Pawn']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: 'Castling Rules',
+          prompt: 'Can you castle if your King is currently in Check?',
+          answer: 'False'
+        }
+      ],
+      math: [
+        {
+          type: 'MC',
+          instruction: 'Algebraic Calculation',
+          prompt: 'Solve for x: 3x - 5 = 10',
+          answer: 'x = 5',
+          options: ['x = 3', 'x = 5', 'x = 15', 'x = 2']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: 'Sort numbers in ascending order',
+          prompt: 'Order from lowest to highest: 42, 7, 19',
+          answerTokens: ['7', '19', '42'],
+          poolTokens: ['42', '7', '19']
+        }
+      ],
+      es: [
+        {
+          type: 'MC',
+          instruction: 'Translate this word to English',
+          prompt: 'El gato',
+          answer: 'The cat',
+          options: ['The dog', 'The cat', 'The bird', 'The house']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: 'Build the Spanish translation',
+          prompt: 'I want to drink water',
+          answerTokens: ['Yo', 'quiero', 'beber', 'agua'],
+          poolTokens: ['Yo', 'comere', 'quiero', 'beber', 'leche', 'agua', 'por']
+        }
+      ],
+      'zh-sim': [
+        {
+          type: 'MC',
+          instruction: 'Translate to Pinyin',
+          prompt: '你好 (Greetings)',
+          answer: 'Nǐ hǎo',
+          options: ['Nǐ hǎo', 'Xièxiè', 'Zàijiàn', 'Míngtiān']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: 'Tone check',
+          prompt: 'Mandarin Chinese has 4 standard pitch tones.',
+          answer: 'True'
+        }
+      ]
+    };
+
+    function generateGenericQuestions(subject) {
+      return [
+        {
+          type: 'MC',
+          instruction: `Translate primary phrase in ${subject.name}`,
+          prompt: 'Hello / Welcome',
+          answer: 'Unit Phrase A',
+          options: ['Unit Phrase A', 'Unit Phrase B', 'Unit Phrase C', 'Unit Phrase D']
+        },
+        {
+          type: 'WORDBANK',
+          instruction: `Build the translation in ${subject.name}`,
+          prompt: 'Thank you very much',
+          answerTokens: ['Thank', 'you', 'very', 'much'],
+          poolTokens: ['Thank', 'please', 'you', 'good', 'very', 'much']
+        },
+        {
+          type: 'TRUEFALSE',
+          instruction: `Grammar check for ${subject.name}`,
+          prompt: 'Is this skill module part of Unit 1 Fundamentals?',
+          answer: 'True'
+        },
+        {
+          type: 'FLASHCARD',
+          instruction: `Key Concept Card`,
+          prompt: `${subject.name} - Essential Module`,
+          answer: 'Core structural vocabulary and standard practice expressions.'
+        }
+      ];
+    }
+  </script>
+
+  <script>
+    class AppController {
+      constructor() {
+        this.user = {
+          streak: 1,
+          gems: 50,
+          hearts: 5,
+          xp: 0,
+          activeSubjectId: 'webdev',
+          completedLessons: {}
+        };
+
+        this.currentQuiz = {
+          subject: null,
+          level: 1,
+          questions: [],
+          index: 0,
+          correctCount: 0,
+          selectedAnswer: null,
+          wordBankSelected: []
+        };
+
+        this.init();
+      }
+
+      init() {
+        this.loadStorage();
+        this.updateHUD();
+        this.renderSubjectGrid();
+        this.selectSubject(this.user.activeSubjectId, false);
+      }
+
+      loadStorage() {
+        const saved = localStorage.getItem('lingoquest_app_v3');
+        if (saved) {
+          try {
+            this.user = { ...this.user, ...JSON.parse(saved) };
+          } catch(e) {}
+        }
+      }
+
+      saveStorage() {
+        localStorage.setItem('lingoquest_app_v3', JSON.stringify(this.user));
+        this.updateHUD();
+      }
+
+      updateHUD() {
+        document.getElementById('hud-streak').innerText = this.user.streak;
+        document.getElementById('hud-gems').innerText = this.user.gems;
+        document.getElementById('hud-hearts').innerText = this.user.hearts;
+        document.getElementById('hud-xp').innerText = this.user.xp;
+
+        const sub = SUBJECTS_DATA.find(s => s.id === this.user.activeSubjectId);
+        if (sub) {
+          document.getElementById('active-flag').innerText = sub.flag;
+          document.getElementById('active-title').innerText = sub.name;
+        }
+      }
+
+      showDashboard() {
+        document.getElementById('view-dashboard').classList.remove('hidden');
+        document.getElementById('view-quiz').classList.add('hidden');
+        document.getElementById('view-complete').classList.add('hidden');
+      }
+
+      filterSubjects() {
+        const query = document.getElementById('subject-search').value.toLowerCase();
+        const cat = document.getElementById('category-filter').value;
+
+        const filtered = SUBJECTS_DATA.filter(s => {
+          const matchQuery = s.name.toLowerCase().includes(query) || s.desc.toLowerCase().includes(query);
+          const matchCat = cat === 'ALL' || s.category === cat;
+          return matchQuery && matchCat;
+        });
+
+        this.renderSubjectGrid(filtered);
+      }
+
+      renderSubjectGrid(list = SUBJECTS_DATA) {
+        const grid = document.getElementById('subject-grid');
+        grid.innerHTML = '';
+
+        list.forEach(sub => {
+          const isActive = sub.id === this.user.activeSubjectId;
+          const card = document.createElement('div');
+          card.className = `bg-white p-4 rounded-3xl border-2 transition cursor-pointer flex flex-col items-center text-center space-y-2 btn-bounce ${
+            isActive ? 'border-duoGreen shadow-btn-green ring-2 ring-duoGreen/20' : 'border-slate-200 shadow-card-3d hover:border-slate-300'
+          }`;
+          card.onclick = () => this.selectSubject(sub.id);
+
+          card.innerHTML = `
+            <div class="text-4xl py-1">${sub.flag}</div>
+            <div class="font-black text-sm text-slate-800 leading-tight">${sub.name}</div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">${sub.category}</div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      selectSubject(subjectId, autoScroll = true) {
+        this.user.activeSubjectId = subjectId;
+        this.saveStorage();
+        this.renderSubjectGrid();
+
+        const sub = SUBJECTS_DATA.find(s => s.id === subjectId);
+        if (sub) {
+          document.getElementById('path-section').classList.remove('hidden');
+          document.getElementById('path-title').innerText = `${sub.flag} ${sub.name} Skill Path`;
+          this.renderSkillTree(sub);
+
+          if (autoScroll) {
+            document.getElementById('path-section').scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }
+
+      renderSkillTree(subject) {
+        const treeContainer = document.getElementById('lesson-tree-nodes');
+        treeContainer.innerHTML = '';
+
+        const levels = [
+          { level: 1, title: 'Unit 1: Fundamentals', icon: 'fa-star' },
+          { level: 2, title: 'Unit 2: Intermediate', icon: 'fa-comments' },
+          { level: 3, title: 'Unit 3: Mastery', icon: 'fa-crown' }
+        ];
+
+        levels.forEach((lvl, idx) => {
+          const key = `${subject.id}_lvl_${lvl.level}`;
+          const isDone = this.user.completedLessons[key];
+          const isLocked = idx > 0 && !this.user.completedLessons[`${subject.id}_lvl_${lvl.level - 1}`];
+
+          const node = document.createElement('div');
+          node.className = 'flex flex-col items-center space-y-2 w-full';
+
+          let btnClass = 'bg-duoGreen shadow-btn-green text-white';
+          if (isDone) btnClass = 'bg-duoYellow shadow-btn-yellow text-white';
+          if (isLocked) btnClass = 'bg-slate-200 shadow-btn-gray text-slate-400 cursor-not-allowed';
+
+          node.innerHTML = `
+            <button ${isLocked ? 'disabled' : ''} onclick="app.startQuiz('${subject.id}', ${lvl.level})" 
+              class="w-20 h-20 rounded-full ${btnClass} font-black text-2xl flex items-center justify-center btn-bounce transition relative">
+              <i class="fa-solid ${lvl.icon}"></i>
+              ${isDone ? '<div class="absolute -bottom-1 -right-1 bg-duoYellow border-2 border-white text-xs w-6 h-6 rounded-full flex items-center justify-center"><i class="fa-solid fa-check text-white"></i></div>' : ''}
+            </button>
+            <span class="font-extrabold text-sm text-slate-700">${lvl.title}</span>
+          `;
+          treeContainer.appendChild(node);
+        });
+      }
+
+      startQuiz(subjectId, level) {
+        if (this.user.hearts <= 0) {
+          alert('Out of hearts! Please refill hearts using Gems in the footer.');
+          return;
+        }
+
+        const sub = SUBJECTS_DATA.find(s => s.id === subjectId);
+        let qList = QUESTION_BANK[subjectId] || generateGenericQuestions(sub);
+
+        this.currentQuiz = {
+          subject: sub,
+          level: level,
+          questions: qList,
+          index: 0,
+          correctCount: 0,
+          selectedAnswer: null,
+          wordBankSelected: []
+        };
+
+        document.getElementById('view-dashboard').classList.add('hidden');
+        document.getElementById('view-quiz').classList.remove('hidden');
+
+        this.loadQuestion();
+      }
+
+      loadQuestion() {
+        const q = this.currentQuiz.questions[this.currentQuiz.index];
+        this.currentQuiz.selectedAnswer = null;
+        this.currentQuiz.wordBankSelected = [];
+
+        // Progress bar
+        const pct = (this.currentQuiz.index / this.currentQuiz.questions.length) * 100;
+        document.getElementById('quiz-progress-bar').style.width = `${pct}%`;
+        document.getElementById('quiz-hearts-count').innerText = this.user.hearts;
+
+        document.getElementById('quiz-type-tag').innerText = q.type;
+        document.getElementById('quiz-instruction').innerText = q.instruction;
+        document.getElementById('quiz-prompt-text').innerText = q.prompt;
+
+        // Hide Footer
+        document.getElementById('quiz-footer').className = 'hidden';
+
+        const area = document.getElementById('quiz-interaction-area');
+        area.innerHTML = '';
+
+        if (q.type === 'MC') {
+          this.renderMultipleChoice(q, area);
+        } else if (q.type === 'WORDBANK') {
+          this.renderWordBank(q, area);
+        } else if (q.type === 'TRUEFALSE') {
+          this.renderTrueFalse(q, area);
+        } else if (q.type === 'FLASHCARD') {
+          this.renderFlashcard(q, area);
+        }
+
+        audioManager.speak(q.prompt);
+      }
+
+      speakCurrentPrompt() {
+        const q = this.currentQuiz.questions[this.currentQuiz.index];
+        if (q) audioManager.speak(q.prompt);
+      }
+
+      renderMultipleChoice(q, container) {
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+
+        q.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'p-4 rounded-2xl border-2 border-slate-200 hover:border-duoBlue hover:bg-slate-50 font-black text-slate-700 text-left transition shadow-card-3d btn-bounce';
+          btn.innerText = opt;
+          btn.onclick = () => this.evaluateAnswer(opt, q.answer, btn);
+          grid.appendChild(btn);
+        });
+
+        container.appendChild(grid);
+      }
+
+      renderTrueFalse(q, container) {
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-2 gap-4';
+
+        ['True', 'False'].forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = `p-6 rounded-2xl border-2 border-slate-200 font-black text-xl text-center shadow-card-3d btn-bounce transition ${
+            opt === 'True' ? 'hover:border-duoGreen hover:bg-green-50 text-duoGreen' : 'hover:border-duoRed hover:bg-red-50 text-duoRed'
+          }`;
+          btn.innerText = opt;
+          btn.onclick = () => this.evaluateAnswer(opt, q.answer, btn);
+          grid.appendChild(btn);
+        });
+
+        container.appendChild(grid);
+      }
+
+      renderWordBank(q, container) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'space-y-6';
+
+        // Target Slot
+        const slot = document.createElement('div');
+        slot.id = 'wordbank-slot';
+        slot.className = 'min-h-[60px] p-3 border-b-2 border-slate-200 flex flex-wrap gap-2 items-center';
+
+        // Source Pool
+        const pool = document.createElement('div');
+        pool.id = 'wordbank-pool';
+        pool.className = 'flex flex-wrap gap-2 justify-center pt-4';
+
+        q.poolTokens.forEach((token, idx) => {
+          const btn = document.createElement('button');
+          btn.id = `wb-token-${idx}`;
+          btn.className = 'px-4 py-2 bg-white border-2 border-slate-200 rounded-xl font-black text-slate-700 shadow-card-3d btn-bounce';
+          btn.innerText = token;
+          btn.onclick = () => {
+            if (btn.parentElement.id === 'wordbank-pool') {
+              slot.appendChild(btn);
+              this.currentQuiz.wordBankSelected.push(token);
+            } else {
+              pool.appendChild(btn);
+              this.currentQuiz.wordBankSelected = this.currentQuiz.wordBankSelected.filter(t => t !== token);
+            }
+          };
+          pool.appendChild(btn);
+        });
+
+        wrapper.appendChild(slot);
+        wrapper.appendChild(pool);
+
+        // Submit Button
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'w-full py-3 bg-duoBlue hover:bg-duoBlueDark text-white font-black rounded-2xl shadow-btn-blue btn-bounce uppercase';
+        submitBtn.innerText = 'Check Answer';
+        submitBtn.onclick = () => {
+          const userStr = this.currentQuiz.wordBankSelected.join(' ');
+          const targetStr = q.answerTokens.join(' ');
+          this.evaluateAnswer(userStr, targetStr, submitBtn);
+        };
+        wrapper.appendChild(submitBtn);
+
+        container.appendChild(wrapper);
+      }
+
+      renderFlashcard(q, container) {
+        const cardWrapper = document.createElement('div');
+        cardWrapper.className = 'perspective-1000 w-full h-48 cursor-pointer';
+
+        const inner = document.createElement('div');
+        inner.className = 'relative w-full h-full rounded-3xl border-2 border-slate-200 bg-white shadow-card-3d transition-transform duration-500 transform-style-3d flex items-center justify-center p-6 text-center';
+        
+        inner.innerHTML = `
+          <div class="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-4">
+            <span class="text-xs font-black uppercase text-slate-400 mb-2">Click card to flip</span>
+            <span class="text-2xl font-black text-slate-800">${q.prompt}</span>
+          </div>
+          <div class="absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-4 bg-duoGreen/10 rounded-3xl">
+            <span class="text-xs font-black uppercase text-duoGreen mb-2">Definition / Answer</span>
+            <span class="text-lg font-black text-slate-800">${q.answer}</span>
+          </div>
+        `;
+
+        let flipped = false;
+        cardWrapper.onclick = () => {
+          flipped = !flipped;
+          inner.style.transform = flipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+        };
+
+        const gotItBtn = document.createElement('button');
+        gotItBtn.className = 'w-full mt-4 py-3 bg-duoGreen hover:bg-duoGreenDark text-white font-black rounded-2xl shadow-btn-green btn-bounce uppercase';
+        gotItBtn.innerText = 'I Got It!';
+        gotItBtn.onclick = () => this.evaluateAnswer('GOT_IT', 'GOT_IT', gotItBtn);
+
+        container.appendChild(cardWrapper);
+        container.appendChild(gotItBtn);
+      }
+
+      evaluateAnswer(userAns, correctAns, element) {
+        if (this.currentQuiz.selectedAnswer !== null) return;
+        this.currentQuiz.selectedAnswer = userAns;
+
+        const isCorrect = userAns.trim().toLowerCase() === correctAns.trim().toLowerCase();
+        const footer = document.getElementById('quiz-footer');
+        const iconBox = document.getElementById('feedback-icon-box');
+        const title = document.getElementById('feedback-title');
+        const desc = document.getElementById('feedback-desc');
+
+        if (isCorrect) {
+          audioManager.playCorrect();
+          this.currentQuiz.correctCount++;
+          
+          footer.className = 'p-4 sm:p-6 rounded-3xl border-2 border-green-300 bg-green-100 text-green-800 flex flex-col sm:flex-row items-center justify-between gap-4';
+          iconBox.className = 'w-12 h-12 rounded-full bg-duoGreen flex items-center justify-center text-white text-2xl font-black shrink-0';
+          iconBox.innerHTML = '<i class="fa-solid fa-check"></i>';
+          title.innerText = 'Excellent!';
+          desc.innerText = 'You solved this exercise correctly.';
+        } else {
+          audioManager.playWrong();
+          this.user.hearts = Math.max(0, this.user.hearts - 1);
+          this.saveStorage();
+
+          footer.className = 'p-4 sm:p-6 rounded-3xl border-2 border-red-300 bg-red-100 text-red-800 flex flex-col sm:flex-row items-center justify-between gap-4';
+          iconBox.className = 'w-12 h-12 rounded-full bg-duoRed flex items-center justify-center text-white text-2xl font-black shrink-0';
+          iconBox.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+          title.innerText = 'Correct answer:';
+          desc.innerText = correctAns;
+        }
+
+        footer.classList.remove('hidden');
+      }
+
+      nextQuestion() {
+        this.currentQuiz.index++;
+        if (this.currentQuiz.index < this.currentQuiz.questions.length) {
+          this.loadQuestion();
+        } else {
+          this.completeLesson();
+        }
+      }
+
+      completeLesson() {
+        audioManager.playFanfare();
+
+        const key = `${this.currentQuiz.subject.id}_lvl_${this.currentQuiz.level}`;
+        this.user.completedLessons[key] = true;
+        
+        const earnedXP = this.currentQuiz.correctCount * 10;
+        this.user.xp += earnedXP;
+        this.user.gems += 5;
+        this.saveStorage();
+
+        document.getElementById('complete-xp').innerText = `+${earnedXP} XP`;
+        const accuracy = Math.round((this.currentQuiz.correctCount / this.currentQuiz.questions.length) * 100);
+        document.getElementById('complete-accuracy').innerText = `${accuracy}%`;
+
+        document.getElementById('view-quiz').classList.add('hidden');
+        document.getElementById('view-complete').classList.remove('hidden');
+
+        if (window.confetti) {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
+      }
+
+      finishLessonAndReturn() {
+        this.showDashboard();
+        this.selectSubject(this.user.activeSubjectId, false);
+      }
+
+      confirmExitQuiz() {
+        if (confirm('Exit practice? Session progress will be lost.')) {
+          this.showDashboard();
+        }
+      }
+
+      refillHearts() {
+        if (this.user.gems >= 50) {
+          this.user.gems -= 50;
+          this.user.hearts = 5;
+          this.saveStorage();
+          alert('Hearts refilled to max (5)!');
+        } else {
+          alert('Not enough gems! Complete lessons to earn gems.');
+        }
+      }
+
+      resetUserData() {
+        if (confirm('Reset all learned XP, streaks, and course progress?')) {
+          localStorage.removeItem('lingoquest_app_v3');
+          location.reload();
+        }
+      }
+    }
+
+    let app;
+    window.addEventListener('DOMContentLoaded', () => {
+      app = new AppController();
+    });
+  </script>
+</body>
+</html>
