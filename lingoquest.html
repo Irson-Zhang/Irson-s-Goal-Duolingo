@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LingoQuest Infinite - Unlimited Hearts & All Units</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            duoGreen: '#58cc02',
+            duoGreenDark: '#46a302',
+            duoBlue: '#1cb0f6',
+            duoBlueDark: '#1899d6',
+            duoRed: '#ff4b4b',
+            duoRedDark: '#ea2b2b',
+            duoYellow: '#ffc800',
+            duoYellowDark: '#e5b200',
+            duoPurple: '#ce82ff',
+            duoPurpleDark: '#af62e0',
+            duoGray: '#e5e7eb',
+            duoDark: '#3c3c3c'
+          },
+          boxShadow: {
+            'btn-green': '0 4px 0 #46a302',
+            'btn-green-active': '0 0 0 #46a302',
+            'btn-blue': '0 4px 0 #1899d6',
+            'btn-blue-active': '0 0 0 #1899d6',
+            'btn-red': '0 4px 0 #ea2b2b',
+            'btn-purple': '0 4px 0 #af62e0',
+            'btn-yellow': '0 4px 0 #e5b200',
+            'btn-gray': '0 4px 0 #cbd5e1',
+            'card-3d': '0 6px 0 #e2e8f0'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+    body {
+      font-family: 'Nunito', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .btn-bounce { transition: all 0.1s ease; }
+    .btn-bounce:active { transform: translateY(4px); box-shadow: 0 0 0 currentColor !important; }
+    .perspective-1000 { perspective: 1000px; }
+    .transform-style-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+
+  <!-- TOP HEADER HUD -->
+  <header class="bg-white border-b-2 border-slate-200 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="app.showDashboard()">
+        <div class="bg-duoGreen text-white p-2 rounded-2xl flex items-center justify-center w-10 h-10 shadow-btn-green">
+          <i class="fa-solid fa-feather-pointed text-xl"></i>
+        </div>
+        <span class="font-extrabold text-2xl tracking-wide text-duoGreen hidden sm:inline">lingoquest <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full uppercase">Infinite</span></span>
+      </div>
+
+      <!-- Active Subject Display Badge -->
+      <div id="active-subject-badge" onclick="app.showDashboard()" class="cursor-pointer bg-slate-100 hover:bg-slate-200 border-2 border-slate-200 px-3 py-1.5 rounded-2xl flex items-center space-x-2 transition">
+        <span id="active-flag" class="text-xl">🌐</span>
+        <span id="active-title" class="font-bold text-xs sm:text-sm text-slate-700">Select Subject</span>
+        <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+      </div>
+
+      <!-- User Stats HUD Bar -->
+      <div class="flex items-center space-x-4 sm:space-x-6 font-black text-sm">
+        <!-- Streak -->
+        <div class="flex items-center text-amber-500 space-x-1" title="Daily Streak">
+          <i class="fa-solid fa-fire text-lg sm:text-xl animate-bounce"></i>
+          <span id="hud-streak">1</span>
+        </div>
+
+        <!-- Gems -->
+        <div class="flex items-center text-duoBlue space-x-1" title="Gems Currency">
+          <i class="fa-solid fa-gem text-base sm:text-lg"></i>
+          <span id="hud-gems">500</span>
+        </div>
+
+        <!-- Infinite Hearts Health -->
+        <div class="flex items-center text-duoRed space-x-1" title="Unlimited Hearts Mode Active">
+          <i class="fa-solid fa-infinity text-lg sm:text-xl"></i>
+          <span class="text-xs uppercase tracking-tighter">Unlimited</span>
+        </div>
+
+        <!-- Total XP -->
+        <div class="flex items-center text-duoYellow space-x-1" title="Total Experience Points">
+          <i class="fa-solid fa-bolt text-base sm:text-lg"></i>
+          <span id="hud-xp">0</span>
+        </div>
+
+        <!-- Audio Mute Toggle -->
+        <button onclick="audioManager.toggleMute()" id="btn-audio-toggle" class="text-slate-400 hover:text-slate-600 p-1 text-lg">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6">
+
+    <!-- VIEW 1: Dashboard & Subject Grid -->
+    <section id="view-dashboard" class="space-y-8">
+      
+      <!-- Top Banner -->
+      <div class="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-card-3d flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-800">Explore All Courses & Curriculum</h1>
+          <p class="text-slate-500 font-semibold text-sm mt-1">Unlimited hearts enabled. Browse multi-section grades, units, and levels across 45+ subjects.</p>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap sm:flex-nowrap gap-2 w-full md:w-auto">
+          <div class="relative w-full sm:w-48">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+            <input type="text" id="subject-search" oninput="app.filterSubjects()" placeholder="Search course..." 
+              class="w-full pl-9 pr-3 py-2 bg-slate-100 border-2 border-slate-200 rounded-xl font-bold text-sm focus:outline-none focus:border-duoBlue">
+          </div>
+          <select id="category-filter" onchange="app.filterSubjects()" class="bg-slate-100 border-2 border-slate-200 rounded-xl font-bold text-sm px-3 py-2 focus:outline-none focus:border-duoBlue">
+            <option value="ALL">All Categories</option>
+            <option value="Language">Languages</option>
+            <option value="Tech">Coding & Tech</option>
+            <option value="STEM">STEM & Math</option>
+            <option value="Logic">Logic & Games</option>
+            <option value="Arts">Music & Arts</option>
+            <option value="Fantasy">Fantasy & Conlangs</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Subject Grid -->
+      <div id="subject-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <!-- Rendered via JavaScript -->
+      </div>
+
+      <!-- Extended Skill Path Sections Tree -->
+      <div id="path-section" class="hidden space-y-8 pt-6 border-t-2 border-slate-200">
+        <div class="text-center space-y-1">
+          <h2 id="path-title" class="text-2xl sm:text-3xl font-black text-slate-800">Curriculum Skill Path</h2>
+          <p class="text-slate-500 font-bold text-sm">Progress through graded sections from Rookie foundations to ultimate mastery.</p>
+        </div>
+
+        <!-- Multi-Section Curriculum Render Area -->
+        <div id="curriculum-sections-container" class="space-y-10 max-w-xl mx-auto py-2">
+          <!-- Rendered via JavaScript -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: Interactive Quiz Engine Screen -->
+    <section id="view-quiz" class="hidden max-w-xl mx-auto space-y-6 py-2">
+      
+      <!-- Quiz Header & Progress Bar -->
+      <div class="flex items-center space-x-4">
+        <button onclick="app.confirmExitQuiz()" class="text-slate-400 hover:text-slate-600 text-2xl font-extrabold p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="flex-1 bg-slate-200 h-4 rounded-full overflow-hidden p-0.5 border border-slate-300">
+          <div id="quiz-progress-bar" class="bg-duoGreen h-full w-0 transition-all duration-300 rounded-full shadow-inner"></div>
+        </div>
+        <div class="flex items-center space-x-1 text-duoRed font-black text-lg" title="Unlimited Hearts Active">
+          <i class="fa-solid fa-infinity"></i>
+        </div>
+      </div>
+
+      <!-- Question Card Container -->
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border-2 border-slate-200 shadow-card-3d space-y-6 min-h-[380px] flex flex-col justify-between">
+        
+        <!-- Header / Prompt Info -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span id="quiz-type-tag" class="text-xs font-black uppercase tracking-wider px-3 py-1 bg-duoBlue/10 text-duoBlue rounded-full">Multiple Choice</span>
+            <button onclick="app.speakCurrentPrompt()" title="Listen Pronunciation" class="text-duoBlue hover:text-duoBlueDark text-2xl transition">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+          </div>
+          <h2 id="quiz-instruction" class="text-xl sm:text-2xl font-black text-slate-800">Select the correct translation</h2>
+          <div id="quiz-prompt-box" class="p-4 bg-slate-100 rounded-2xl border-2 border-slate-200 font-black text-xl text-slate-700 flex items-center justify-between">
+            <span id="quiz-prompt-text">...</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Answer Interaction Container -->
+        <div id="quiz-interaction-area" class="flex-1 flex flex-col justify-center py-2"></div>
+
+      </div>
+
+      <!-- Sticky Feedback Footer Bar -->
+      <div id="quiz-footer" class="hidden p-4 sm:p-6 rounded-3xl border-2 transition-all duration-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div id="feedback-content" class="flex items-center space-x-3 w-full sm:w-auto">
+          <div id="feedback-icon-box" class="w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-black shrink-0"></div>
+          <div>
+            <h4 id="feedback-title" class="font-black text-lg"></h4>
+            <p id="feedback-desc" class="font-bold text-sm"></p>
+          </div>
+        </div>
+        <button id="btn-next-step" onclick="app.nextQuestion()" class="w-full sm:w-auto bg-duoGreen hover:bg-duoGreenDark text-white font-black py-3.5 px-8 rounded-2xl shadow-btn-green btn-bounce transition uppercase tracking-wider text-sm">
+          Continue
+        </button>
+      </div>
+
+    </section>
+
+    <!-- VIEW 3: Completion Celebration View -->
+    <section id="view-complete" class="hidden text-center space-y-8 max-w-md mx-auto py-8">
+      <div class="relative inline-block">
+        <div class="w-32 h-32 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-6xl mx-auto shadow-inner border-4 border-amber-300 animate-bounce">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="absolute -top-2 -right-2 bg-duoGreen text-white text-xs font-black px-3 py-1 rounded-full shadow">
+          LESSON CONQUERED!
+        </div>
+      </div>
+
+      <div>
+        <h1 class="text-3xl font-black text-slate-800">Fantastic Work!</h1>
+        <p class="text-slate-500 font-bold mt-1">You crushed this curriculum level with unlimited practice.</p>
+      </div>
+
+      <!-- Result Stats Card -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-card-3d">
+          <div class="text-xs font-black uppercase text-slate-400">XP Earned</div>
+          <div id="complete-xp" class="text-2xl font-black text-duoYellow flex items-center justify-center space-x-1 mt-1">
+            <i class="fa-solid fa-bolt"></i> <span>+25 XP</span>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-card-3d">
+          <div class="text-xs font-black uppercase text-slate-400">Accuracy Score</div>
+          <div id="complete-accuracy" class="text-2xl font-black text-duoGreen flex items-center justify-center space-x-1 mt-1">
+            <i class="fa-solid fa-bullseye"></i> <span>100%</span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="app.finishLessonAndReturn()" class="w-full bg-duoGreen hover:bg-duoGreenDark text-white font-black py-4 rounded-2xl shadow-btn-green btn-bounce transition uppercase tracking-wider text-base">
+        Continue Pathway
+      </button>
+    </section>
+
+  </main>
+
+  <!-- FOOTER CONTROLS -->
+  <footer class="bg-white border-t-2 border-slate-200 py-4 text-center text-xs font-extrabold text-slate-400">
+    <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div>LingoQuest Infinite &copy; 2026 • All Sections & Grades Unlocked</div>
+      <div class="flex space-x-4">
+        <span class="text-duoGreen"><i class="fa-solid fa-circle-check"></i> Unlimited Hearts Active</span>
+        <button onclick="app.resetUserData()" class="hover:text-slate-600">Reset Progress</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Confetti Canvas overlay -->
+  <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full"></canvas>
+
+  <!-- AUDIO ENGINE SCRIPT -->
+  <script>
+    class AudioSFXManager {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+      }
+      initContext() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') { this.ctx.resume(); }
+      }
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        const icon = document.getElementById('btn-audio-toggle').querySelector('i');
+        if (this.isMuted) { icon.className = 'fa-solid fa-volume-xmark text-duoRed'; }
+        else { icon.className = 'fa-solid fa-volume-high text-slate-400'; this.playCorrect(); }
+      }
+      playCorrect() {
+        if (this.isMuted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      }
+      playWrong() {
+        if (this.isMuted) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.setValueAtTime(174.61, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      }
+      playFanfare() {
+        if (this.isMuted) return;
+        this.initContext();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const now = this.ctx.currentTime + (idx * 0.12);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now); osc.stop(now + 0.4);
+        });
+      }
+      speak(text) {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = 0.9;
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+    }
+    const audioManager = new AudioSFXManager();
+  </script>
+
+  <!-- DATA BANK: 45 FULL SUBJECTS CATALOG & MULTI-SECTION GRADES -->
+  <script>
+    const SUBJECTS_DATA = [
+      { id: 'webdev', name: 'Web Development', flag: '💻', category: 'Tech', desc: 'HTML, CSS, JS & MERN Architecture' },
+      { id: 'en', name: 'English', flag: '🇬🇧', category: 'Language', desc: 'Grammar, Idioms & Vocabulary' },
+      { id: 'zh-sim', name: 'Chinese (Simplified)', flag: '🇨🇳', category: 'Language', desc: 'Mandarin Pinyin & Characters' },
+      { id: 'es', name: 'Spanish', flag: '🇪🇸', category: 'Language', desc: 'Conversational Spanish & Verbs' },
+      { id: 'fr', name: 'French', flag: '🇫🇷', category: 'Language', desc: 'French Phonetics & Phrases' },
+      { id: 'chess', name: 'Chess Tactics', flag: '♟️', category: 'Logic', desc: 'Openings, Pins, Forks & Endgames' },
+      { id: 'ja', name: 'Japanese', flag: '🇯🇵', category: 'Language', desc: 'Hiragana, Katakana & Kanji' },
+      { id: 'de', name: 'German', flag: '🇩🇪', category: 'Language', desc: 'German Case System & Grammar' },
+      { id: 'math', name: 'Math Basics', flag: '🔢', category: 'STEM', desc: 'Arithmetic, Algebra & Geometry' },
+      { id: 'hi', name: 'Hindi', flag: '🇮🇳', category: 'Language', desc: 'Devanagari Script & Vocabulary' },
+      { id: 'ko', name: 'Korean', flag: '🇰🇷', category: 'Language', desc: 'Hangul Script & Popular Phrases' },
+      { id: 'it', name: 'Italian', flag: '🇮🇹', category: 'Language', desc: 'Italian Expressions & Grammar' },
+      { id: 'zh-tra', name: 'Chinese (Traditional)', flag: '🇹🇼', category: 'Language', desc: 'Traditional Characters & Pinyin' },
+      { id: 'ru', name: 'Russian', flag: '🇷🇺', category: 'Language', desc: 'Cyrillic Script & Cases' },
+      { id: 'ar', name: 'Arabic', flag: '🇦🇪', category: 'Language', desc: 'Arabic Alphabet & MSA Expressions' },
+      { id: 'pt', name: 'Portuguese', flag: '🇵🇹', category: 'Language', desc: 'Brazilian & European Portuguese' },
+      { id: 'tr', name: 'Turkish', flag: '🇹🇷', category: 'Language', desc: 'Vowel Harmony & Agglutination' },
+      { id: 'nl', name: 'Dutch', flag: '🇳🇱', category: 'Language', desc: 'Dutch Grammar & Daily Speech' },
+      { id: 'el', name: 'Greek', flag: '🇬🇷', category: 'Language', desc: 'Greek Alphabet & Modern Vocab' },
+      { id: 'pl', name: 'Polish', flag: '🇵🇱', category: 'Language', desc: 'Polish Conjugations & Vocabulary' },
+      { id: 'sv', name: 'Swedish', flag: '🇸🇪', category: 'Language', desc: 'Nordic Grammar & Useful Terms' },
+      { id: 'vi', name: 'Vietnamese', flag: '🇻🇳', category: 'Language', desc: 'Six Tones & Conversational Phrases' },
+      { id: 'la', name: 'Latin', flag: '🏛️', category: 'Language', desc: 'Classical Declensions & Roots' },
+      { id: 'no', name: 'Norwegian (Bokmål)', flag: '🇳🇴', category: 'Language', desc: 'Norwegian Grammar & Vocabulary' },
+      { id: 'ga', name: 'Irish', flag: '🇮🇪', category: 'Language', desc: 'Gaeilge Syntax & Phrases' },
+      { id: 'he', name: 'Hebrew', flag: '🇮🇱', category: 'Language', desc: 'Hebrew Alef-Bet & Verb Roots' },
+      { id: 'id', name: 'Indonesian', flag: '🇮🇩', category: 'Language', desc: 'Bahasa Indonesia Fundamentals' },
+      { id: 'val', name: 'High Valyrian', flag: '🐉', category: 'Fantasy', desc: 'Dragons & Valyrian Phrases' },
+      { id: 'uk', name: 'Ukrainian', flag: '🇺🇦', category: 'Language', desc: 'Ukrainian Cyrillic & Greetings' },
+      { id: 'fi', name: 'Finnish', flag: '🇫🇮', category: 'Language', desc: 'Finnish Cases & Vocabulary' },
+      { id: 'da', name: 'Danish', flag: '🇩🇰', category: 'Language', desc: 'Danish Vocabulary & Pronunciation' },
+      { id: 'ro', name: 'Romanian', flag: '🇷🇴', category: 'Language', desc: 'Romance Grammar & Key Words' },
+      { id: 'cs', name: 'Czech', flag: '🇨🇿', category: 'Language', desc: 'Czech Expressions & Conjugation' },
+      { id: 'zu', name: 'Zulu', flag: '🇿🇦', category: 'Language', desc: 'isiZulu Noun Classes & Greetings' },
+      { id: 'haw', name: 'Hawaiian', flag: '🌺', category: 'Language', desc: 'ʻŌlelo Hawaiʻi Vocabulary' },
+      { id: 'sw', name: 'Swahili', flag: '🇰🇪', category: 'Language', desc: 'Kiswahili Noun Prefix System' },
+      { id: 'cy', name: 'Welsh', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿', category: 'Language', desc: 'Cymraeg Mutated Letters & Phrases' },
+      { id: 'hu', name: 'Hungarian', flag: '🇭🇺', category: 'Language', desc: 'Hungarian Agglutinative Grammar' },
+      { id: 'gd', name: 'Scottish Gaelic', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', category: 'Language', desc: 'Gàidhlig Syntax & Vocabulary' },
+      { id: 'ht', name: 'Haitian Creole', flag: '🇭🇹', category: 'Language', desc: 'Kreyòl Ayisyen Everyday Speech' },
+      { id: 'eo', name: 'Esperanto', flag: '🟢', category: 'Language', desc: 'Universal Planned Auxiliary Language' },
+      { id: 'tlh', name: 'Klingon', flag: '⚔️', category: 'Fantasy', desc: 'Star Trek Warrior Dialect & Verbs' },
+      { id: 'nv', name: 'Navajo', flag: '🦅', category: 'Language', desc: 'Diné Bizaad Verbs & Nouns' },
+      { id: 'yi', name: 'Yiddish', flag: '📜', category: 'Language', desc: 'Hebrew Script & Ashkenazi Idioms' },
+      { id: 'music', name: 'Music Theory', flag: '🎵', category: 'Arts', desc: 'Notes, Scales, Intervals & Chords' }
+    ];
+
+    // Multi-Section Grade Curriculum definition per subject
+    const CURRICULUM_SECTIONS = [
+      { id: 1, name: 'Section 1: Rookie', subtitle: 'Foundations & Alphabet Basics', icon: 'fa-seedling' },
+      { id: 2, name: 'Section 2: Explorer', subtitle: 'Everyday Sentences & Core Grammar', icon: 'fa-compass' },
+      { id: 3, name: 'Section 3: Traveler', subtitle: 'Conversational Fluency & Sentences', icon: 'fa-suitcase-rolling' },
+      { id: 4, name: 'Section 4: Trailblazer', subtitle: 'Advanced Syntax & Expressions', icon: 'fa-fire-flame-curved' },
+      { id: 5, name: 'Section 5: Adventurer', subtitle: 'Complex Concepts & Abstracts', icon: 'fa-mountain' },
+      { id: 6, name: 'Section 6: Champion', subtitle: 'Expert Mastery & Professional Fluency', icon: 'fa-crown' }
+    ];
+
+    const QUESTION_BANK = {
+      webdev: [
+        { type: 'MC', instruction: 'Which HTML element is used for the top-level heading?', prompt: 'Identify the largest text header tag', answer: '<h1>', options: ['<h6>', '<head>', '<h1>', '<header>'] },
+        { type: 'WORDBANK', instruction: 'Build the JavaScript constant variable declaration snippet', prompt: 'Declare variable "score" as 100', answerTokens: ['const', 'score', '=', '100', ';'], poolTokens: ['let', 'const', 'score', '=', '100', 'var', ';', '100;'] },
+        { type: 'TRUEFALSE', instruction: 'Assess the React framework concept', prompt: 'React uses a Virtual DOM to optimize view re-renders.', answer: 'True' },
+        { type: 'FLASHCARD', instruction: 'Flip card to review CSS Flexbox layout rule', prompt: 'justify-content: center;', answer: 'Aligns flex items along the main horizontal axis to the center.' }
+      ],
+      music: [
+        { type: 'MC', instruction: 'Music Reading Question', prompt: 'Which note sits on the bottom line of the Treble Clef staff?', answer: 'E4', options: ['C4', 'E4', 'G4', 'F4'] },
+        { type: 'WORDBANK', instruction: 'Assemble the root notes of a C Major triad chord', prompt: 'C Major Chord Notes', answerTokens: ['C', 'E', 'G'], poolTokens: ['C', 'D', 'E', 'F', 'G', 'A', 'B'] },
+        { type: 'TRUEFALSE', instruction: 'Music Theory Intervals check', prompt: 'An octave interval contains exactly 12 semitones.', answer: 'True' }
+      ],
+      chess: [
+        { type: 'MC', instruction: 'Chess Piece Movement Rules', prompt: 'Which piece moves in an "L" shape across the board and can jump over others?', answer: 'Knight', options: ['Bishop', 'Rook', 'Knight', 'Pawn'] },
+        { type: 'TRUEFALSE', instruction: 'Castling Rules', prompt: 'Can you castle if your King is currently in Check?', answer: 'False' }
+      ],
+      math: [
+        { type: 'MC', instruction: 'Algebraic Calculation', prompt: 'Solve for x: 3x - 5 = 10', answer: 'x = 5', options: ['x = 3', 'x = 5', 'x = 15', 'x = 2'] },
+        { type: 'WORDBANK', instruction: 'Sort numbers in ascending order', prompt: 'Order numbers from lowest to highest: 42, 7, 19', answerTokens: ['7', '19', '42'], poolTokens: ['42', '7', '19'] }
+      ],
+      es: [
+        { type: 'MC', instruction: 'Translate this word to English', prompt: 'El gato', answer: 'The cat', options: ['The dog', 'The cat', 'The bird', 'The house'] },
+        { type: 'WORDBANK', instruction: 'Build the Spanish translation sentence', prompt: 'I want to drink water', answerTokens: ['Yo', 'quiero', 'beber', 'agua'], poolTokens: ['Yo', 'comere', 'quiero', 'beber', 'leche', 'agua', 'por'] }
+      ]
+    };
+
+    function generateGenericQuestions(subject, sectionId) {
+      return [
+        { type: 'MC', instruction: `Section ${sectionId} Assessment (${subject.name})`, prompt: `Core vocabulary phrase level ${sectionId}`, answer: `Correct ${subject.name} Term A`, options: [`Correct ${subject.name} Term A`, `Incorrect Distractor B`, `Incorrect Distractor C`, `Incorrect Distractor D`] },
+        { type: 'WORDBANK', instruction: `Sentence Structure Exercise (${subject.name})`, prompt: `Translate expression for Grade ${sectionId}`, answerTokens: ['Master', 'this', 'core', 'lesson'], poolTokens: ['Master', 'skip', 'this', 'core', 'lesson', 'fast'] },
+        { type: 'TRUEFALSE', instruction: `Grammar Rule verification`, prompt: `Grammar syntax for ${subject.name} adheres to standard structural rules.`, answer: 'True' },
+        { type: 'FLASHCARD', instruction: `Flashcard Review`, prompt: `${subject.name} - Unit Concept #${sectionId}`, answer: 'Advanced application of rules and contextual vocabulary.' }
+      ];
+    }
+  </script>
+
+  <!-- CORE CONTROLLER APPLICATION LOGIC -->
+  <script>
+    class AppController {
+      constructor() {
+        this.user = {
+          streak: 1,
+          gems: 500,
+          xp: 0,
+          activeSubjectId: 'webdev',
+          completedLessons: {} // tracks 'subjectId_sec_X_unit_Y'
+        };
+
+        this.currentQuiz = {
+          subject: null,
+          sectionId: 1,
+          unitNum: 1,
+          questions: [],
+          index: 0,
+          correctCount: 0,
+          selectedAnswer: null,
+          wordBankSelected: []
+        };
+
+        this.init();
+      }
+
+      init() {
+        this.loadStorage();
+        this.updateHUD();
+        this.renderSubjectGrid();
+        this.selectSubject(this.user.activeSubjectId, false);
+      }
+
+      loadStorage() {
+        const saved = localStorage.getItem('lingoquest_infinite_v5');
+        if (saved) {
+          try { this.user = { ...this.user, ...JSON.parse(saved) }; } catch(e){}
+        }
+      }
+
+      saveStorage() {
+        localStorage.setItem('lingoquest_infinite_v5', JSON.stringify(this.user));
+        this.updateHUD();
+      }
+
+      updateHUD() {
+        document.getElementById('hud-streak').innerText = this.user.streak;
+        document.getElementById('hud-gems').innerText = this.user.gems;
+        document.getElementById('hud-xp').innerText = this.user.xp;
+
+        const sub = SUBJECTS_DATA.find(s => s.id === this.user.activeSubjectId);
+        if (sub) {
+          document.getElementById('active-flag').innerText = sub.flag;
+          document.getElementById('active-title').innerText = sub.name;
+        }
+      }
+
+      showDashboard() {
+        document.getElementById('view-dashboard').classList.remove('hidden');
+        document.getElementById('view-quiz').classList.add('hidden');
+        document.getElementById('view-complete').classList.add('hidden');
+      }
+
+      filterSubjects() {
+        const query = document.getElementById('subject-search').value.toLowerCase();
+        const cat = document.getElementById('category-filter').value;
+        const filtered = SUBJECTS_DATA.filter(s => {
+          const matchQuery = s.name.toLowerCase().includes(query) || s.desc.toLowerCase().includes(query);
+          const matchCat = cat === 'ALL' || s.category === cat;
+          return matchQuery && matchCat;
+        });
+        this.renderSubjectGrid(filtered);
+      }
+
+      renderSubjectGrid(list = SUBJECTS_DATA) {
+        const grid = document.getElementById('subject-grid');
+        grid.innerHTML = '';
+        list.forEach(sub => {
+          const isActive = sub.id === this.user.activeSubjectId;
+          const card = document.createElement('div');
+          card.className = `bg-white p-4 rounded-3xl border-2 transition cursor-pointer flex flex-col items-center text-center space-y-2 btn-bounce ${
+            isActive ? 'border-duoGreen shadow-btn-green ring-2 ring-duoGreen/20' : 'border-slate-200 shadow-card-3d hover:border-slate-300'
+          }`;
+          card.onclick = () => this.selectSubject(sub.id);
+          card.innerHTML = `
+            <div class="text-4xl py-1">${sub.flag}</div>
+            <div class="font-black text-sm text-slate-800 leading-tight">${sub.name}</div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">${sub.category}</div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
+      selectSubject(subjectId, autoScroll = true) {
+        this.user.activeSubjectId = subjectId;
+        this.saveStorage();
+        this.renderSubjectGrid();
+
+        const sub = SUBJECTS_DATA.find(s => s.id === subjectId);
+        if (sub) {
+          document.getElementById('path-section').classList.remove('hidden');
+          document.getElementById('path-title').innerText = `${sub.flag} ${sub.name} Curriculum Path`;
+          this.renderCurriculumSections(sub);
+
+          if (autoScroll) {
+            document.getElementById('path-section').scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }
+
+      renderCurriculumSections(subject) {
+        const container = document.getElementById('curriculum-sections-container');
+        container.innerHTML = '';
+
+        CURRICULUM_SECTIONS.forEach(sec => {
+          const sectionBox = document.createElement('div');
+          sectionBox.className = 'bg-white rounded-3xl border-2 border-slate-200 shadow-card-3d overflow-hidden';
+
+          // Section Header Banner
+          sectionBox.innerHTML = `
+            <div class="bg-slate-100 border-b-2 border-slate-200 p-4 flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-duoBlue text-white flex items-center justify-center font-black shadow">
+                  <i class="fa-solid ${sec.icon}"></i>
+                </div>
+                <div>
+                  <h3 class="font-black text-slate-800 text-base">${sec.name}</h3>
+                  <p class="text-xs font-bold text-slate-400">${sec.subtitle}</p>
+                </div>
+              </div>
+              <span class="text-xs font-black bg-duoBlue/10 text-duoBlue px-3 py-1 rounded-full uppercase">6 Units</span>
+            </div>
+          `;
+
+          // Units Grid inside Section (Units 1 to 6 per Section)
+          const unitsGrid = document.createElement('div');
+          unitsGrid.className = 'p-6 grid grid-cols-3 sm:grid-cols-6 gap-4 items-center justify-items-center';
+
+          for (let u = 1; u <= 6; u++) {
+            const unitKey = `${subject.id}_sec_${sec.id}_unit_${u}`;
+            const isDone = this.user.completedLessons[unitKey];
+
+            const unitBtn = document.createElement('button');
+            unitBtn.className = `w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-black text-lg transition btn-bounce shadow-card-3d ${
+              isDone ? 'bg-duoYellow text-white shadow-[0_4px_0_#e5b200]' : 'bg-duoGreen text-white shadow-btn-green'
+            }`;
+            unitBtn.title = `Start Section ${sec.id}, Unit ${u}`;
+            unitBtn.innerHTML = `
+              <i class="fa-solid ${isDone ? 'fa-check text-sm' : 'fa-star text-sm'}"></i>
+              <span class="text-[10px]">U${u}</span>
+            `;
+            unitBtn.onclick = () => this.startLesson(subject.id, sec.id, u);
+            unitsGrid.appendChild(unitBtn);
+          }
+
+          sectionBox.appendChild(unitsGrid);
+          container.appendChild(sectionBox);
+        });
+      }
+
+      startLesson(subjectId, sectionId, unitNum) {
+        const sub = SUBJECTS_DATA.find(s => s.id === subjectId);
+        let qBank = QUESTION_BANK[subjectId];
+        if (!qBank || qBank.length === 0) {
+          qBank = generateGenericQuestions(sub, sectionId);
+        }
+
+        // Unlimited hearts: No hearts check needed!
+        this.currentQuiz = {
+          subject: sub,
+          sectionId: sectionId,
+          unitNum: unitNum,
+          questions: JSON.parse(JSON.stringify(qBank)),
+          index: 0,
+          correctCount: 0,
+          selectedAnswer: null,
+          wordBankSelected: []
+        };
+
+        document.getElementById('view-dashboard').classList.add('hidden');
+        document.getElementById('view-complete').classList.add('hidden');
+        document.getElementById('view-quiz').classList.remove('hidden');
+
+        this.loadQuestion();
+      }
+
+      loadQuestion() {
+        const qData = this.currentQuiz;
+        if (qData.index >= qData.questions.length) {
+          this.completeQuiz();
+          return;
+        }
+
+        const progressPct = (qData.index / qData.questions.length) * 100;
+        document.getElementById('quiz-progress-bar').style.width = `${progressPct}%`;
+
+        document.getElementById('quiz-footer').classList.add('hidden');
+
+        const currentQ = qData.questions[qData.index];
+        document.getElementById('quiz-instruction').innerText = currentQ.instruction;
+        document.getElementById('quiz-prompt-text').innerText = currentQ.prompt;
+
+        const tagMap = {
+          'MC': { text: 'Multiple Choice', color: 'bg-duoBlue/10 text-duoBlue' },
+          'WORDBANK': { text: 'Word Construction', color: 'bg-duoPurple/10 text-duoPurple' },
+          'TRUEFALSE': { text: 'True or False', color: 'bg-duoYellow/10 text-amber-600' },
+          'FLASHCARD': { text: 'Interactive Flashcard', color: 'bg-duoGreen/10 text-duoGreen' }
+        };
+        const cfg = tagMap[currentQ.type] || tagMap['MC'];
+        const tagEl = document.getElementById('quiz-type-tag');
+        tagEl.innerText = cfg.text;
+        tagEl.className = `text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full ${cfg.color}`;
+
+        this.renderInteractionArea(currentQ);
+      }
+
+      renderInteractionArea(q) {
+        const area = document.getElementById('quiz-interaction-area');
+        area.innerHTML = '';
+
+        if (q.type === 'MC') {
+          const grid = document.createElement('div');
+          grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3';
+          const shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
+          shuffledOpts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'p-4 bg-white border-2 border-slate-200 hover:border-duoBlue rounded-2xl font-black text-slate-700 shadow-card-3d transition btn-bounce text-left flex items-center justify-between';
+            btn.innerHTML = `<span>${opt}</span><div class="w-6 h-6 rounded-lg border-2 border-slate-200 flex items-center justify-center text-xs text-transparent"><i class="fa-solid fa-check"></i></div>`;
+            btn.onclick = () => {
+              grid.querySelectorAll('button').forEach(b => b.classList.remove('border-duoBlue', 'bg-duoBlue/5', 'ring-2', 'ring-duoBlue/20'));
+              btn.classList.add('border-duoBlue', 'bg-duoBlue/5', 'ring-2', 'ring-duoBlue/20');
+              this.currentQuiz.selectedAnswer = opt;
+              this.enableCheckButton();
+            };
+            grid.appendChild(btn);
+          });
+          area.appendChild(grid);
+        } 
+        else if (q.type === 'WORDBANK') {
+          this.currentQuiz.wordBankSelected = [];
+          const container = document.createElement('div');
+          container.className = 'space-y-6';
+
+          const dropZone = document.createElement('div');
+          dropZone.id = 'wordbank-dropzone';
+          dropZone.className = 'min-h-[64px] p-3 bg-slate-100 border-2 border-slate-200 rounded-2xl flex flex-wrap gap-2 items-center';
+          dropZone.innerHTML = '<span class="text-slate-400 font-bold text-sm italic">Tap word tokens below to construct sentence...</span>';
+
+          const poolZone = document.createElement('div');
+          poolZone.id = 'wordbank-pool';
+          poolZone.className = 'flex flex-wrap gap-2 pt-2';
+
+          const shuffledPool = [...q.poolTokens].sort(() => Math.random() - 0.5);
+          shuffledPool.forEach(token => {
+            const chip = document.createElement('button');
+            chip.className = 'px-4 py-2.5 bg-white border-2 border-slate-200 hover:border-slate-300 rounded-xl font-black text-slate-700 shadow-card-3d btn-bounce transition';
+            chip.innerText = token;
+            chip.onclick = () => {
+              poolZone.removeChild(chip);
+              this.currentQuiz.wordBankSelected.push({ token, originChip: chip });
+              this.updateWordBankUI();
+            };
+            poolZone.appendChild(chip);
+          });
+
+          container.appendChild(dropZone);
+          container.appendChild(poolZone);
+          area.appendChild(container);
+          this.enableCheckButton();
+        }
+        else if (q.type === 'TRUEFALSE') {
+          const grid = document.createElement('div');
+          grid.className = 'grid grid-cols-2 gap-4';
+          ['True', 'False'].forEach(val => {
+            const btn = document.createElement('button');
+            btn.className = `p-6 rounded-2xl border-2 font-black text-xl shadow-card-3d btn-bounce transition flex flex-col items-center space-y-2 ${
+              val === 'True' ? 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100' : 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
+            }`;
+            btn.innerHTML = `<i class="fa-solid ${val === 'True' ? 'fa-circle-check text-3xl' : 'fa-circle-xmark text-3xl'}"></i><span>${val}</span>`;
+            btn.onclick = () => {
+              grid.querySelectorAll('button').forEach(b => b.classList.remove('ring-4', 'ring-slate-400'));
+              btn.classList.add('ring-4', 'ring-slate-400');
+              this.currentQuiz.selectedAnswer = val;
+              this.enableCheckButton();
+            };
+            grid.appendChild(btn);
+          });
+          area.appendChild(grid);
+        }
+        else if (q.type === 'FLASHCARD') {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'perspective-1000 w-full h-48 cursor-pointer';
+          wrapper.innerHTML = `
+            <div id="flashcard-inner" class="relative w-full h-full text-center transition-transform duration-500 transform-style-3d shadow-card-3d rounded-3xl border-2 border-slate-200">
+              <div class="absolute inset-0 bg-white rounded-3xl backface-hidden flex flex-col items-center justify-center p-6 space-y-2">
+                <span class="text-xs font-black uppercase text-duoBlue">Tap to Flip Card</span>
+                <span class="font-black text-xl text-slate-800">${q.prompt}</span>
+              </div>
+              <div class="absolute inset-0 bg-duoBlue text-white rounded-3xl backface-hidden rotate-y-180 flex flex-col items-center justify-center p-6 space-y-2">
+                <span class="text-xs font-black uppercase text-white/80">Definition / Answer</span>
+                <span class="font-black text-lg">${q.answer}</span>
+              </div>
+            </div>
+          `;
+          let isFlipped = false;
+          wrapper.onclick = () => {
+            isFlipped = !isFlipped;
+            document.getElementById('flashcard-inner').style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+            this.currentQuiz.selectedAnswer = q.answer;
+            this.enableCheckButton();
+          };
+          area.appendChild(wrapper);
+          this.enableCheckButton();
+        }
+      }
+
+      updateWordBankUI() {
+        const dropZone = document.getElementById('wordbank-dropzone');
+        dropZone.innerHTML = '';
+        if (this.currentQuiz.wordBankSelected.length === 0) {
+          dropZone.innerHTML = '<span class="text-slate-400 font-bold text-sm italic">Tap word tokens below to construct sentence...</span>';
+          return;
+        }
+        this.currentQuiz.wordBankSelected.forEach((item, index) => {
+          const chip = document.createElement('button');
+          chip.className = 'px-3.5 py-2 bg-duoBlue text-white rounded-xl font-black text-sm shadow btn-bounce transition';
+          chip.innerText = item.token;
+          chip.onclick = () => {
+            const poolZone = document.getElementById('wordbank-pool');
+            poolZone.appendChild(item.originChip);
+            this.currentQuiz.wordBankSelected.splice(index, 1);
+            this.updateWordBankUI();
+          };
+          dropZone.appendChild(chip);
+        });
+      }
+
+      enableCheckButton() {
+        const footer = document.getElementById('quiz-footer');
+        footer.className = 'p-4 sm:p-6 rounded-3xl border-2 bg-white border-slate-200 shadow-card-3d flex flex-col sm:flex-row items-center justify-between gap-4';
+        document.getElementById('feedback-content').innerHTML = `
+          <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center text-xl font-black shrink-0">
+            <i class="fa-solid fa-circle-question"></i>
+          </div>
+          <div>
+            <h4 class="font-black text-lg text-slate-700">Ready to Submit</h4>
+            <p class="font-bold text-sm text-slate-400">Unlimited hearts: test freely without penalties.</p>
+          </div>
+        `;
+        const btn = document.getElementById('btn-next-step');
+        btn.innerText = 'Check Answer';
+        btn.className = 'w-full sm:w-auto bg-duoGreen hover:bg-duoGreenDark text-white font-black py-3.5 px-8 rounded-2xl shadow-btn-green btn-bounce transition uppercase tracking-wider text-sm';
+        btn.onclick = () => this.verifyAnswer();
+        footer.classList.remove('hidden');
+      }
+
+      verifyAnswer() {
+        const currentQ = this.currentQuiz.questions[this.currentQuiz.index];
+        let isCorrect = false;
+
+        if (currentQ.type === 'MC' || currentQ.type === 'TRUEFALSE' || currentQ.type === 'FLASHCARD') {
+          if (this.currentQuiz.selectedAnswer === currentQ.answer) isCorrect = true;
+        } else if (currentQ.type === 'WORDBANK') {
+          const userSentence = this.currentQuiz.wordBankSelected.map(i => i.token).join(' ');
+          const correctSentence = currentQ.answerTokens.join(' ');
+          if (userSentence === correctSentence) isCorrect = true;
+        }
+
+        const footer = document.getElementById('quiz-footer');
+        const iconBox = document.getElementById('feedback-icon-box');
+        const titleEl = document.getElementById('feedback-title');
+        const descEl = document.getElementById('feedback-desc');
+        const btn = document.getElementById('btn-next-step');
+
+        if (isCorrect) {
+          this.currentQuiz.correctCount++;
+          audioManager.playCorrect();
+
+          footer.className = 'p-4 sm:p-6 rounded-3xl border-2 bg-emerald-50 border-emerald-300 shadow-card-3d flex flex-col sm:flex-row items-center justify-between gap-4';
+          iconBox.className = 'w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center text-2xl font-black shrink-0 shadow';
+          iconBox.innerHTML = '<i class="fa-solid fa-check"></i>';
+          titleEl.className = 'font-black text-lg text-emerald-800';
+          titleEl.innerText = 'Spot on!';
+          descEl.className = 'font-bold text-sm text-emerald-600';
+          descEl.innerText = 'Unlimited practice working successfully.';
+          btn.className = 'w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3.5 px-8 rounded-2xl shadow-[0_4px_0_#059669] btn-bounce transition uppercase tracking-wider text-sm';
+        } else {
+          audioManager.playWrong();
+
+          footer.className = 'p-4 sm:p-6 rounded-3xl border-2 bg-rose-50 border-rose-300 shadow-card-3d flex flex-col sm:flex-row items-center justify-between gap-4';
+          iconBox.className = 'w-12 h-12 rounded-full bg-rose-500 text-white flex items-center justify-center text-2xl font-black shrink-0 shadow';
+          iconBox.innerHTML = '<i class="fa-solid fa-infinity"></i>';
+          titleEl.className = 'font-black text-lg text-rose-800';
+          titleEl.innerText = 'Unlimited Hearts: Keep Going!';
+          
+          let correctDisplay = currentQ.answer;
+          if (currentQ.type === 'WORDBANK') correctDisplay = currentQ.answerTokens.join(' ');
+          descEl.className = 'font-bold text-sm text-rose-600';
+          descEl.innerText = `Correct answer was: ${correctDisplay}`;
+          btn.className = 'w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white font-black py-3.5 px-8 rounded-2xl shadow-[0_4px_0_#e11d48] btn-bounce transition uppercase tracking-wider text-sm';
+        }
+
+        btn.innerText = 'Continue';
+        btn.onclick = () => {
+          this.currentQuiz.index++;
+          this.loadQuestion();
+        };
+      }
+
+      nextQuestion() {
+        this.currentQuiz.index++;
+        this.loadQuestion();
+      }
+
+      completeQuiz() {
+        audioManager.playFanfare();
+
+        const xpEarned = 25;
+        this.user.xp += xpEarned;
+        const accuracy = Math.round((this.currentQuiz.correctCount / this.currentQuiz.questions.length) * 100);
+
+        const unitKey = `${this.currentQuiz.subject.id}_sec_${this.currentQuiz.sectionId}_unit_${this.currentQuiz.unitNum}`;
+        this.user.completedLessons[unitKey] = true;
+        this.saveStorage();
+
+        document.getElementById('complete-xp').innerHTML = `<i class="fa-solid fa-bolt"></i> <span>+${xpEarned} XP</span>`;
+        document.getElementById('complete-accuracy').innerHTML = `<i class="fa-solid fa-bullseye"></i> <span>${accuracy}%</span>`;
+
+        document.getElementById('view-quiz').classList.add('hidden');
+        document.getElementById('view-complete').classList.remove('hidden');
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 130, spread: 90, origin: { y: 0.6 } });
+        }
+      }
+
+      finishLessonAndReturn() {
+        this.showDashboard();
+        this.selectSubject(this.user.activeSubjectId, false);
+      }
+
+      confirmExitQuiz() {
+        if (confirm('Return to pathway dashboard?')) {
+          this.showDashboard();
+        }
+      }
+
+      speakCurrentPrompt() {
+        const q = this.currentQuiz.questions[this.currentQuiz.index];
+        if (q && q.prompt) { audioManager.speak(q.prompt); }
+      }
+
+      resetUserData() {
+        if (confirm('Reset all progress data?')) {
+          localStorage.removeItem('lingoquest_infinite_v5');
+          location.reload();
+        }
+      }
+    }
+
+    const app = new AppController();
+  </script>
+</body>
+</html>
