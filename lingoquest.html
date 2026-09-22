@@ -403,7 +403,6 @@
       { id: 'music', name: 'Music Theory', flag: '🎵', category: 'Arts', desc: 'Notes, Scales, Intervals & Chords' }
     ];
 
-    // Multi-Section Grade Curriculum definition per subject
     const CURRICULUM_SECTIONS = [
       { id: 1, name: 'Section 1: Rookie', subtitle: 'Foundations & Alphabet Basics', icon: 'fa-seedling' },
       { id: 2, name: 'Section 2: Explorer', subtitle: 'Everyday Sentences & Core Grammar', icon: 'fa-compass' },
@@ -458,7 +457,7 @@
           gems: 500,
           xp: 0,
           activeSubjectId: 'webdev',
-          completedLessons: {} // tracks 'subjectId_sec_X_unit_Y'
+          completedLessons: {}
         };
 
         this.currentQuiz = {
@@ -567,7 +566,6 @@
           const sectionBox = document.createElement('div');
           sectionBox.className = 'bg-white rounded-3xl border-2 border-slate-200 shadow-card-3d overflow-hidden';
 
-          // Section Header Banner
           sectionBox.innerHTML = `
             <div class="bg-slate-100 border-b-2 border-slate-200 p-4 flex items-center justify-between">
               <div class="flex items-center space-x-3">
@@ -583,7 +581,6 @@
             </div>
           `;
 
-          // Units Grid inside Section (Units 1 to 6 per Section)
           const unitsGrid = document.createElement('div');
           unitsGrid.className = 'p-6 grid grid-cols-3 sm:grid-cols-6 gap-4 items-center justify-items-center';
 
@@ -616,7 +613,6 @@
           qBank = generateGenericQuestions(sub, sectionId);
         }
 
-        // Unlimited hearts: No hearts check needed!
         this.currentQuiz = {
           subject: sub,
           sectionId: sectionId,
